@@ -40,7 +40,7 @@
         </div>
     </div>
 
-    <!-- LEITURA COMPARTILHADA DO BANCO DE DADOS -->
+    <!-- SCRIPT DE RENDERIZAÇÃO DO MAPA E TRATAMENTO DA IMAGEM -->
     <script>
         function initData() {
             if (!localStorage.getItem("salas")) {
@@ -80,6 +80,18 @@
                 const img = document.createElement("img");
                 img.src = "planta-baixa.png";
                 img.alt = "Planta Baixa do Prédio";
+                
+                // Se a imagem falhar ao carregar, exibe um aviso claro na tela para ajudar no diagnóstico
+                img.onerror = function() {
+                    imgContainer.innerHTML = `
+                        <div style="padding: 40px; text-align: center; color: #dc3545; background: #fff3f3;">
+                            <h3>⚠️ Imagem da planta baixa não encontrada!</h3>
+                            <p>O sistema procurou pelo arquivo <strong>planta-baixa.png</strong> na mesma pasta.</p>
+                            <p style="font-size: 13px; color: #666;">Verifique se o arquivo está na raiz do projeto e se o nome está exato (letras minúsculas).</p>
+                        </div>
+                    `;
+                };
+
                 imgContainer.appendChild(img);
 
                 salas.forEach(sala => {
@@ -109,7 +121,7 @@
                 containerDesktop.appendChild(wrapper);
             }
 
-            // 2. Renderização para Celular (Lista em Cards Detalhados com Turno e Alunos)
+            // 2. Renderização para Celular (Lista em Cards Detalhados)
             const containerMobile = document.getElementById("lista-mobile-container");
             if (containerMobile) {
                 containerMobile.innerHTML = "";
