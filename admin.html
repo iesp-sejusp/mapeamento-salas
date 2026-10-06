@@ -6,7 +6,7 @@
     <title>Painel Administrativo - Mapeamento</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body onload="carregarPainelAdminSeLogado()">
 
     <div class="wrapper">
         <header>
@@ -24,7 +24,7 @@
             <h3>Acesso Restrito</h3>
             <p>Digite a senha de administrador (123):</p>
             <input type="password" id="senha-input" placeholder="Senha" style="text-align: center; font-size: 16px;">
-            <button class="btn-action" onclick="verificarSenhaDireta()">Entrar</button>
+            <button type="button" class="btn-action" onclick="verificarSenhaDireta()">Entrar</button>
             <p id="erro-senha" style="color: red; margin-top: 10px; font-size: 14px;"></p>
         </div>
 
@@ -141,21 +141,213 @@
         </div>
     </div>
 
-    <!-- Script de login e seguranca -->
+    <!-- SCRIPT EMBUTIDO PARA GARANTIR EXECUCAO IMEDIATA E SEM ERROS -->
     <script>
+        const defaultSalas = [
+            { id: "s1", nome: "Sala 101", bloco: "Bloco A", x: 20, y: 30 },
+            { id: "s2", nome: "Sala 102", bloco: "Bloco A", x: 40, y: 30 },
+            { id: "s3", nome: "Lab Info", bloco: "Bloco B", x: 70, y: 60 },
+            { id: "s4", nome: "Auditório", bloco: "Bloco C", x: 30, y: 80 }
+        ];
+
+        function initData() {
+            if (!localStorage.getItem("salas")) {
+                localStorage.setItem("salas", JSON.stringify(defaultSalas));
+            }
+            if (!localStorage.getItem("cursosCadastrados")) {
+                localStorage.setItem("cursosCadastrados", JSON.stringify(["Engenharia de Software", "Administração Avançada", "Design Gráfico"]));
+            }
+            if (!localStorage.getItem("ocupacoes")) {
+                localStorage.setItem("ocupacoes", JSON.stringify({}));
+            }
+        }
+
         function verificarSenhaDireta() {
             const senhaInput = document.getElementById("senha-input").value;
             if (senhaInput === "123") {
                 document.getElementById("login-box").classList.add("hidden");
                 document.getElementById("painel-admin").classList.remove("hidden");
-                if (typeof carregarPainelAdmin === "function") {
-                    carregarPainelAdmin();
-                }
+                localStorage.setItem("adminLogado", "true");
+                carregarPainelAdmin();
             } else {
                 document.getElementById("erro-senha").textContent = "Senha incorreta!";
             }
         }
+
+        function carregarPainelAdminSeLogado() {
+            if (localStorage.getItem("adminLogado") === "true") {
+                document.getElementById("login-box").classList.add("hidden");
+                document.getElementById("painel-admin").classList.remove("hidden");
+                carregarPainelAdmin();
+            }
+        }
+
+        function carregarPainelAdmin() {
+            initData();
+            carregarSelectsAdmin();
+            atualizarListaCursos();
+            atualizarListaSalas();
+        }
+
+        function carregarSelectsAdmin() {
+            const salas = JSON.parse(localStorage.getItem("salas")) || [];
+            const cursos = JSON.parse(localStorage.getItem("cursosCadastrados")) || [];
+            
+            const selectSala = document.getElementById("select-sala");
+            if (selectSala) {
+                selectSala.innerHTML = `<option value="">-- Selecione a Sala --</option>`;
+                salas.forEach(s => {
+                    selectSala.innerHTML += `<option value="${s.id}">${s.nome} (${s.bloco})</option>`;
+                });
+            }
+
+            const selectCurso = document.getElementById("select-curso-cadastrado");
+            if (selectCurso) {
+                selectCurso.innerHTML = `<option value="">-- Selecionar curso pré-cadastrado --</option>`;
+                cursos.forEach(c => {
+                    selectCurso.innerHTML += `<option value="${c}">${c}</option>`;
+                });
+            }
+        }
+
+        function preencherNomeCurso() {
+            const selecionado = document.getElementById("select-curso-cadastrado").value;
+            if (selecionado) {
+                document.getElementById("input-curso-nome").value = selecionado;
+            }
+        }
+
+        // Cursos
+        function cadastrarNovoCursoPreDefinido() {
+            const inputEl = document.getElementById("novo-curso-input");
+            const nomeCurso = inputEl.value.trim();
+            if (!nomeCurso) {
+                alert("Digite o nome do curso.");
+                return;
+            }
+
+            let cursos = JSON.parse(localStorage.getItem("cursosCadastrados")) || [];
+            if (!cursos.includes(nomeCurso)) {
+                cursos.push(nomeCurso);
+                localStorage.setItem("cursosCadastrados", JSON.stringify(cursos));
+                inputEl.value = "";
+                carregarSelectsAdmin();
+                atualizarListaCursos();
+                alert("Curso pré-cadastrado com sucesso!");
+            } else {
+                alert("Este curso já está cadastrado.");
+            }
+        }
+
+        function atualizarListaCursos() {
+            const cursos = JSON.parse(localStorage.getItem("cursosCadastrados")) || [];
+            const ul = document.getElementById("lista-cursos-ul");
+            if (!ul) return;
+            ul.innerHTML = "";
+            cursos.forEach((c, index) => {
+                ul.innerHTML += `<li>${c} <button type="button" onclick="removerCurso(${index})" style="background:var(--danger-color); color:white; border:none; padding:3px 8px; border-radius:3px; cursor:pointer;">Excluir</button></li>`;
+            });
+        }
+
+        function removerCurso(index) {
+            let cursos = JSON.parse(localStorage.getItem("cursosCadastrados")) || [];
+            cursos.splice(index, 1);
+            localStorage.setItem("cursosCadastrados", JSON.stringify(cursos));
+            carregarSelectsAdmin();
+            atualizarListaCursos();
+        }
+
+        // Salas
+        function cadastrarNovaSalaDireto() {
+            const nomeEl = document.getElementById("nova-sala-nome");
+            const blocoEl = document.getElementById("nova-sala-bloco");
+            const xEl = document.getElementById("nova-sala-x");
+            const yEl = document.getElementById("nova-sala-y");
+
+            const nome = nomeEl.value.trim();
+            const bloco = blocoEl.value.trim();
+            const x = parseFloat(xEl.value);
+            const y = parseFloat(yEl.value);
+
+            if (!nome || !bloco || isNaN(x) || isNaN(y)) {
+                alert("Preencha todos os campos da sala corretamente.");
+                return;
+            }
+
+            let salas = JSON.parse(localStorage.getItem("salas")) || [];
+            const novoId = "s_" + Date.now();
+            
+            salas.push({ id: novoId, nome, bloco, x, y });
+            localStorage.setItem("salas", JSON.stringify(salas));
+
+            alert("Sala cadastrada com sucesso!");
+            
+            nomeEl.value = "";
+            blocoEl.value = "";
+            xEl.value = "";
+            yEl.value = "";
+
+            carregarSelectsAdmin();
+            atualizarListaSalas();
+        }
+
+        function atualizarListaSalas() {
+            const salas = JSON.parse(localStorage.getItem("salas")) || [];
+            const ul = document.getElementById("lista-salas-ul");
+            if (!ul) return;
+            ul.innerHTML = "";
+            
+            salas.forEach((s) => {
+                ul.innerHTML += `<li>${s.nome} (${s.bloco}) - Pos(%): X:${s.x}, Y:${s.y} <button type="button" onclick="removerSala('${s.id}')" style="background:var(--danger-color); color:white; border:none; padding:3px 8px; border-radius:3px; cursor:pointer;">Excluir</button></li>`;
+            });
+        }
+
+        function removerSala(id) {
+            if (!confirm("Deseja realmente excluir esta sala?")) return;
+            let salas = JSON.parse(localStorage.getItem("salas")) || [];
+            salas = salas.filter(s => s.id !== id);
+            localStorage.setItem("salas", JSON.stringify(salas));
+
+            let ocupacoes = JSON.parse(localStorage.getItem("ocupacoes")) || {};
+            if (ocupacoes[id]) {
+                delete ocupacoes[id];
+                localStorage.setItem("ocupacoes", JSON.stringify(ocupacoes));
+            }
+
+            carregarSelectsAdmin();
+            atualizarListaSalas();
+            alert("Sala removida com sucesso!");
+        }
+
+        // Ocupações
+        function salvarOcupacaoSalaDireto() {
+            const salaId = document.getElementById("select-sala").value;
+            const curso = document.getElementById("input-curso-nome").value.trim();
+            const turno = document.getElementById("select-turno").value;
+            const alunos = document.getElementById("input-alunos").value.trim();
+            const inicio = document.getElementById("data-inicio").value;
+            const fim = document.getElementById("data-fim").value;
+            const telefone = document.getElementById("telefone-contato").value.trim();
+
+            if (!salaId || !curso || !turno || !alunos || !inicio || !fim || !telefone) {
+                alert("Preencha todos os campos da ocupação.");
+                return;
+            }
+
+            let ocupacoes = JSON.parse(localStorage.getItem("ocupacoes")) || {};
+            ocupacoes[salaId] = { curso, turno, alunos, inicio, fim, telefone };
+            localStorage.setItem("ocupacoes", JSON.stringify(ocupacoes));
+
+            alert("Sala mapeada/ocupada com sucesso!");
+            
+            document.getElementById("input-curso-nome").value = "";
+            document.getElementById("select-turno").value = "";
+            document.getElementById("input-alunos").value = "";
+            document.getElementById("data-inicio").value = "";
+            document.getElementById("data-fim").value = "";
+            document.getElementById("telefone-contato").value = "";
+            document.getElementById("select-curso-cadastrado").value = "";
+        }
     </script>
-    <script src="script.js"></script>
 </body>
 </html>
