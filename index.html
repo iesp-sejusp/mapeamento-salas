@@ -40,7 +40,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT DE RENDERIZAÇÃO DO MAPA E TRATAMENTO DA IMAGEM -->
+    <!-- SCRIPT DE RENDERIZAÇÃO COM FORÇAMENTO DE EXIBIÇÃO DA IMAGEM -->
     <script>
         function initData() {
             if (!localStorage.getItem("salas")) {
@@ -81,13 +81,18 @@
                 img.src = "planta-baixa.png";
                 img.alt = "Planta Baixa do Prédio";
                 
-                // Se a imagem falhar ao carregar, exibe um aviso claro na tela para ajudar no diagnóstico
+                // Força estilos visíveis na imagem para garantir que ela apareça na tela
+                img.style.width = "100%";
+                img.style.maxHeight = "600px";
+                img.style.display = "block";
+                img.style.objectFit = "contain";
+                img.style.backgroundColor = "#f8f9fa";
+
                 img.onerror = function() {
                     imgContainer.innerHTML = `
                         <div style="padding: 40px; text-align: center; color: #dc3545; background: #fff3f3;">
                             <h3>⚠️ Imagem da planta baixa não encontrada!</h3>
-                            <p>O sistema procurou pelo arquivo <strong>planta-baixa.png</strong> na mesma pasta.</p>
-                            <p style="font-size: 13px; color: #666;">Verifique se o arquivo está na raiz do projeto e se o nome está exato (letras minúsculas).</p>
+                            <p>O navegador não conseguiu abrir o arquivo <strong>planta-baixa.png</strong>.</p>
                         </div>
                     `;
                 };
