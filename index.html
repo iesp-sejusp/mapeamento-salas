@@ -40,21 +40,21 @@
         </div>
     </div>
 
-    <!-- SCRIPT EMBUTIDO PARA CARREGAR O MAPA E OS CARDS COM TURNO E ALUNOS -->
+    <!-- LEITURA COMPARTILHADA DO BANCO DE DADOS -->
     <script>
-        const defaultSalas = [
-            { id: "s1", nome: "Sala 101", bloco: "Bloco A", x: 20, y: 30 },
-            { id: "s2", nome: "Sala 102", bloco: "Bloco A", x: 40, y: 30 },
-            { id: "s3", nome: "Lab Info", bloco: "Bloco B", x: 70, y: 60 },
-            { id: "s4", nome: "Auditório", bloco: "Bloco C", x: 30, y: 80 }
-        ];
-
         function initData() {
             if (!localStorage.getItem("salas")) {
+                const defaultSalas = [
+                    { id: "s1", nome: "Sala 101", bloco: "Bloco A", x: 20, y: 30 },
+                    { id: "s2", nome: "Sala 102", bloco: "Bloco A", x: 40, y: 30 },
+                    { id: "s3", nome: "Lab Info", bloco: "Bloco B", x: 70, y: 60 },
+                    { id: "s4", nome: "Auditório", bloco: "Bloco C", x: 30, y: 80 }
+                ];
                 localStorage.setItem("salas", JSON.stringify(defaultSalas));
             }
             if (!localStorage.getItem("cursosCadastrados")) {
-                localStorage.setItem("cursosCadastrados", JSON.stringify(["Engenharia de Software", "Administração Avançada", "Design Gráfico"]));
+                const defaultCursos = ["Engenharia de Software", "Administração Avançada", "Design Gráfico"];
+                localStorage.setItem("cursosCadastrados", JSON.stringify(defaultCursos));
             }
             if (!localStorage.getItem("ocupacoes")) {
                 localStorage.setItem("ocupacoes", JSON.stringify({}));
@@ -109,7 +109,7 @@
                 containerDesktop.appendChild(wrapper);
             }
 
-            // 2. Renderização para Celular (Lista em Cards Detalhados)
+            // 2. Renderização para Celular (Lista em Cards Detalhados com Turno e Alunos)
             const containerMobile = document.getElementById("lista-mobile-container");
             if (containerMobile) {
                 containerMobile.innerHTML = "";
