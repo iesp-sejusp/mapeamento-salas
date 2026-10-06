@@ -1,110 +1,144 @@
-<!DOCTYPE html>  
-<html lang="pt-BR">  
-<head>  
-    <meta charset="UTF-8">  
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
-    <title>Painel Administrativo - Mapeamento</title>  
-    <link rel="stylesheet" href="style.css">  
-</head>  
-<body>  
-  
-    <div class="wrapper">  
-        <header>  
-            <div class="logo-container">  
-                <img src="sua-logo.png" alt="Logo" onerror="this.style.display='none'">  
-                <h1>Painel do Administrador</h1>  
-            </div>  
-            <nav>  
-                <a href="index.html" style="background: #6c757d;">Ver Mapa Público</a>  
-            </nav>  
-        </header>  
-  
-        <div id="login-box" class="container" style="max-width: 400px; margin: 50px auto;">  
-            <h3>Acesso Restrito</h3>  
-            <p>Digite a senha de administrador:</p>  
-            <input type="password" id="senha-input" placeholder="Senha">  
-            <button class="btn-action" onclick="verificarSenha()">Entrar</button>  
-            <p id="erro-senha" style="color: red; margin-top: 10px; font-size: 14px;"></p>  
-        </div>  
-  
-        <div id="painel-admin" class="container hidden">  
-              
-            <div style="margin-bottom: 30px;">  
-                <h3>Pré-cadastro de Cursos</h3>  
-                <p>Cadastre os nomes dos cursos antecipadamente para preenchimento rápido:</p>  
-                <div style="display: flex; gap: 10px;">  
-                    <input type="text" id="novo-curso-input" placeholder="Nome do novo curso">  
-                    <button class="btn-action" style="margin-top: 0; width: auto; white-space: nowrap;" onclick="cadastrarNovoCursoPreDefinido()">Adicionar Curso</button>  
-                </div>  
-                <ul id="lista-cursos-ul" class="list-group"></ul>  
-            </div>  
-  
-            <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">  
-  
-            <div>  
-                <h3>Atribuir Ocupação à Sala</h3>  
-                <form id="form-ocupacao" onsubmit="salvarOcupacaoSala(event)">  
-                    <div class="form-grid">  
-                        <div>  
-                            <label>Selecione a Sala:</label>  
-                            <select id="select-sala" required></select>  
-                        </div>  
-                        <div>  
-                            <label>Curso Prévio (Opcional):</label>  
-                            <select id="select-curso-cadastrado" onchange="preencherNomeCurso()">  
-                                <option value="">-- Selecionar curso cadastrado --</option>  
-                            </select>  
-                        </div>  
-                    </div>  
-  
-                    <div class="form-grid">  
-                        <div>  
-                            <label>Nome do Curso Realizado:</label>  
-                            <input type="text" id="input-curso-nome" placeholder="Digite ou selecione acima" required>  
-                        </div>  
-                        <div>  
-                            <label>Turno de Utilização:</label>  
-                            <select id="select-turno" required>  
-                                <option value="">-- Selecione o Turno --</option>  
-                                <option value="Manhã">Manhã</option>  
-                                <option value="Tarde">Tarde</option>  
-                                <option value="Noite">Noite</option>  
-                                <option value="Manhã e Tarde">Manhã e Tarde</option>  
-                                <option value="Tarde e Noite">Tarde e Noite</option>  
-                                <option value="Integral">Integral</option>  
-                            </select>  
-                        </div>  
-                    </div>  
-  
-                    <div class="form-grid">  
-                        <div>  
-                            <label>Número de Alunos:</label>  
-                            <input type="number" id="input-alunos" placeholder="Ex: 35" min="1" required>  
-                        </div>  
-                        <div>  
-                            <label>Telefone para Contato:</label>  
-                            <input type="text" id="telefone-contato" placeholder="(00) 00000-0000" required>  
-                        </div>  
-                    </div>  
-  
-                    <div class="form-grid">  
-                        <div>  
-                            <label>Data de Início do Curso:</label>  
-                            <input type="date" id="data-inicio" required>  
-                        </div>  
-                        <div>  
-                            <label>Data de Término do Curso:</label>  
-                            <input type="date" id="data-fim" required>  
-                        </div>  
-                    </div>  
-  
-                    <button type="submit" class="btn-action">Salvar Ocupação da Sala</button>  
-                </form>  
-            </div>  
-  
-        </div>  
-    </div>  
-  
-    <script src="script.js"></script>  
-</body>  
-</html>  
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Mapeamento</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="wrapper">
+        <header>
+            <div class="logo-container">
+                <img src="sua-logo.png" alt="Logo" onerror="this.style.display='none'">
+                <h1>Painel do Administrador</h1>
+            </div>
+            <nav>
+                <a href="index.html" style="background: #6c757d;">Ver Mapa Público</a>
+            </nav>
+        </header>
+
+        <div id="login-box" class="container" style="max-width: 400px; margin: 50px auto;">
+            <h3>Acesso Restrito</h3>
+            <p>Digite a senha de administrador:</p>
+            <input type="password" id="senha-input" placeholder="Senha">
+            <button class="btn-action" onclick="verificarSenha()">Entrar</button>
+            <p id="erro-senha" style="color: red; margin-top: 10px; font-size: 14px;"></p>
+        </div>
+
+        <div id="painel-admin" class="container hidden">
+            
+            <!-- SEÇÃO DE CADASTRO DE SALAS -->
+            <div style="margin-bottom: 30px;">
+                <h3>Cadastro de Salas</h3>
+                <p>Cadastre novas salas informando o nome, bloco e a posição percentual (X e Y de 0 a 100) na planta baixa:</p>
+                <form id="form-nova-sala" onsubmit="cadastrarNovaSala(event)">
+                    <div class="form-grid">
+                        <div>
+                            <label>Nome da Sala:</label>
+                            <input type="text" id="nova-sala-nome" placeholder="Ex: Sala 103" required>
+                        </div>
+                        <div>
+                            <label>Bloco:</label>
+                            <input type="text" id="nova-sala-bloco" placeholder="Ex: Bloco A" required>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div>
+                            <label>Posição X (% na imagem):</label>
+                            <input type="number" id="nova-sala-x" placeholder="Ex: 50" min="0" max="100" step="any" required>
+                        </div>
+                        <div>
+                            <label>Posição Y (% na imagem):</label>
+                            <input type="number" id="nova-sala-y" placeholder="Ex: 40" min="0" max="100" step="any" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-action" style="background: var(--primary-color);">Adicionar Sala</button>
+                </form>
+                <ul id="lista-salas-ul" class="list-group" style="margin-top: 15px;"></ul>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
+
+            <!-- SEÇÃO DE PRÉ-CADASTRO DE CURSOS -->
+            <div style="margin-bottom: 30px;">
+                <h3>Pré-cadastro de Cursos</h3>
+                <p>Cadastre os nomes dos cursos antecipadamente para preenchimento rápido:</p>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="novo-curso-input" placeholder="Nome do novo curso">
+                    <button class="btn-action" style="margin-top: 0; width: auto; white-space: nowrap;" onclick="cadastrarNovoCursoPreDefinido()">Adicionar Curso</button>
+                </div>
+                <ul id="lista-cursos-ul" class="list-group"></ul>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
+
+            <!-- SEÇÃO DE ATRIBUIÇÃO DE OCUPAÇÃO -->
+            <div>
+                <h3>Atribuir Ocupação à Sala</h3>
+                <form id="form-ocupacao" onsubmit="salvarOcupacaoSala(event)">
+                    <div class="form-grid">
+                        <div>
+                            <label>Selecione a Sala:</label>
+                            <select id="select-sala" required></select>
+                        </div>
+                        <div>
+                            <label>Curso Prévio (Opcional):</label>
+                            <select id="select-curso-cadastrado" onchange="preencherNomeCurso()">
+                                <option value="">-- Selecionar curso cadastrado --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div>
+                            <label>Nome do Curso Realizado:</label>
+                            <input type="text" id="input-curso-nome" placeholder="Digite ou selecione acima" required>
+                        </div>
+                        <div>
+                            <label>Turno de Utilização:</label>
+                            <select id="select-turno" required>
+                                <option value="">-- Selecione o Turno --</option>
+                                <option value="Manhã">Manhã</option>
+                                <option value="Tarde">Tarde</option>
+                                <option value="Noite">Noite</option>
+                                <option value="Manhã e Tarde">Manhã e Tarde</option>
+                                <option value="Tarde e Noite">Tarde e Noite</option>
+                                <option value="Integral">Integral</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div>
+                            <label>Número de Alunos:</label>
+                            <input type="number" id="input-alunos" placeholder="Ex: 35" min="1" required>
+                        </div>
+                        <div>
+                            <label>Telefone para Contato:</label>
+                            <input type="text" id="telefone-contato" placeholder="(00) 00000-0000" required>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div>
+                            <label>Data de Início do Curso:</label>
+                            <input type="date" id="data-inicio" required>
+                        </div>
+                        <div>
+                            <label>Data de Término do Curso:</label>
+                            <input type="date" id="data-fim" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-action">Salvar Ocupação da Sala</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
