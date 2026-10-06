@@ -40,7 +40,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT COM TRATAMENTO DE ERRO DE IMAGEM -->
+    <!-- SCRIPT DO MAPA PÚBLICO -->
     <script>
         function carregarMapaPublico() {
             const containerDesktop = document.getElementById("mapa-container");
@@ -62,7 +62,7 @@
             const salas = JSON.parse(localStorage.getItem("salas")) || [];
             const ocupacoes = JSON.parse(localStorage.getItem("ocupacoes")) || {};
             
-            // 1. Renderização Desktop
+            // 1. Renderização Desktop (Com a imagem .jpg atualizada)
             if (containerDesktop) {
                 containerDesktop.innerHTML = "";
 
@@ -76,7 +76,7 @@
                 imgContainer.style.maxWidth = "100%";
 
                 const img = document.createElement("img");
-                img.src = "planta-baixa.jpg";
+                img.src = "planta-baixa.jpg"; // Atualizado para suportar a extensão .jpg
                 img.alt = "Planta Baixa do Prédio";
                 
                 img.style.width = "100%";
@@ -84,19 +84,18 @@
                 img.style.display = "block";
                 img.style.objectFit = "contain";
 
-                // Se a imagem não for encontrada na pasta, avisa na tela
+                // Se o arquivo jpg não for encontrado na pasta, avisa na tela
                 img.onerror = function() {
                     imgContainer.innerHTML = `
                         <div style="padding: 40px; background: #ffe6e6; color: #d9534f; border: 2px dashed #d9534f; text-align: center; border-radius: 8px;">
                             <h3 style="margin: 0 0 10px 0;">⚠️ Imagem "planta-baixa.jpg" não encontrada!</h3>
-                            <p style="margin: 0; font-size: 14px;">Coloque o arquivo de imagem na mesma pasta do arquivo <strong>index.html</strong> com o nome exato.</p>
+                            <p style="margin: 0; font-size: 14px;">Coloque o arquivo da imagem na mesma pasta do arquivo <strong>index.html</strong> com este nome exato.</p>
                         </div>
                     `;
                 };
 
                 imgContainer.appendChild(img);
 
-                // Só adiciona os marcadores se a imagem carregar (ou adiciona sobre o container)
                 salas.forEach(sala => {
                     const ocupacao = ocupacoes[sala.id];
                     const isOcupada = ocupacao && ocupacao.curso;
