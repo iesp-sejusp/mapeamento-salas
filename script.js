@@ -5,7 +5,7 @@ const defaultSalas = [
     { id: "s3", nome: "Lab Info", bloco: "Bloco B", x: 70, y: 60 },
     { id: "s4", nome: "Auditório", bloco: "Bloco C", x: 30, y: 80 }
 ];
-
+ 
 function initData() {
     if (!localStorage.getItem("salas")) {
         localStorage.setItem("salas", JSON.stringify(defaultSalas));
