@@ -6,30 +6,21 @@
     <title>Painel Administrativo - Mapeamento</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body onload="carregarPainelAdmin()">
 
     <div class="wrapper">
         <header>
             <div class="logo-container">
                 <img src="sua-logo.png" alt="Logo" onerror="this.style.display='none'">
-                <h1>Painel do Administrador</h1>
+                <h1>Painel do Administrador (Modo Direto)</h1>
             </div>
             <nav>
                 <a href="index.html" style="background: #6c757d;">Ver Mapa Público</a>
             </nav>
         </header>
 
-        <!-- TELA DE LOGIN -->
-        <div id="login-box" class="container" style="max-width: 400px; margin: 50px auto; text-align: center;">
-            <h3>Acesso Restrito</h3>
-            <p>Digite a senha de administrador (123):</p>
-            <input type="password" id="senha-input" placeholder="Senha" style="text-align: center; font-size: 16px;">
-            <button type="button" class="btn-action" onclick="verificarSenhaDireta()">Entrar</button>
-            <p id="erro-senha" style="color: red; margin-top: 10px; font-size: 14px;"></p>
-        </div>
-
-        <!-- PAINEL ADMINISTRATIVO -->
-        <div id="painel-admin" class="container hidden">
+        <!-- PAINEL ADMINISTRATIVO ABERTO DIRETAMENTE -->
+        <div id="painel-admin" class="container" style="margin-top: 30px;">
             
             <!-- SECAO DE CADASTRO DE SALAS -->
             <div style="margin-bottom: 30px;">
@@ -142,7 +133,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT DE CONTROLE SEGURO -->
+    <!-- SCRIPT DE GERENCIAMENTO DIRETO -->
     <script>
         function initData() {
             if (!localStorage.getItem("salas")) {
@@ -162,27 +153,6 @@
                 localStorage.setItem("ocupacoes", JSON.stringify({}));
             }
         }
-
-        function verificarSenhaDireta() {
-            const senhaInput = document.getElementById("senha-input").value;
-            if (senhaInput === "123") {
-                document.getElementById("login-box").classList.add("hidden");
-                document.getElementById("painel-admin").classList.remove("hidden");
-                localStorage.setItem("adminLogado", "true");
-                carregarPainelAdmin();
-            } else {
-                document.getElementById("erro-senha").textContent = "Senha incorreta!";
-            }
-        }
-
-        // Verifica o login assim que o documento HTML é totalmente renderizado
-        window.addEventListener("DOMContentLoaded", function() {
-            if (localStorage.getItem("adminLogado") === "true") {
-                document.getElementById("login-box").classList.add("hidden");
-                document.getElementById("painel-admin").classList.remove("hidden");
-                carregarPainelAdmin();
-            }
-        });
 
         function carregarPainelAdmin() {
             initData();
