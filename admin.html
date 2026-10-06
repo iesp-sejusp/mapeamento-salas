@@ -15,7 +15,7 @@
                 <h1>Painel do Administrador</h1>
             </div>
             <nav>
-                <a href="index.html" style="background: #6c757d;">Ver Mapa Publico</a>
+                <a href="index.html" style="background: #6c757d;">Ver Mapa Público</a>
             </nav>
         </header>
 
@@ -34,7 +34,7 @@
             <!-- SECAO DE CADASTRO DE SALAS -->
             <div style="margin-bottom: 30px;">
                 <h3>Cadastro de Salas</h3>
-                <p>Cadastre novas salas informando o nome, bloco e a posicao percentual (X e Y de 0 a 100) na planta baixa:</p>
+                <p>Cadastre novas salas informando o nome, bloco e a posição percentual (X e Y de 0 a 100) na planta baixa:</p>
                 <div>
                     <div class="form-grid">
                         <div>
@@ -48,11 +48,11 @@
                     </div>
                     <div class="form-grid">
                         <div>
-                            <label>Posicao X (% na imagem):</label>
+                            <label>Posição X (% na imagem):</label>
                             <input type="number" id="nova-sala-x" placeholder="Ex: 50" min="0" max="100" step="any">
                         </div>
                         <div>
-                            <label>Posicao Y (% na imagem):</label>
+                            <label>Posição Y (% na imagem):</label>
                             <input type="number" id="nova-sala-y" placeholder="Ex: 40" min="0" max="100" step="any">
                         </div>
                     </div>
@@ -65,8 +65,8 @@
 
             <!-- SECAO DE PRE-CADASTRO DE CURSOS -->
             <div style="margin-bottom: 30px;">
-                <h3>Pre-cadastro de Cursos</h3>
-                <p>Cadastre os nomes dos cursos antecipadamente para preenchimento rapido:</p>
+                <h3>Pré-cadastro de Cursos</h3>
+                <p>Cadastre os nomes dos cursos antecipadamente para preenchimento rápido:</p>
                 <div style="display: flex; gap: 10px;">
                     <input type="text" id="novo-curso-input" placeholder="Nome do novo curso">
                     <button type="button" class="btn-action" style="margin-top: 0; width: auto; white-space: nowrap;" onclick="cadastrarNovoCursoPreDefinido()">Adicionar Curso</button>
@@ -78,7 +78,7 @@
 
             <!-- SECAO DE ATRIBUICAO DE OCUPACAO -->
             <div>
-                <h3>Atribuir Ocupacao a Sala</h3>
+                <h3>Atribuir Ocupação à Sala</h3>
                 <div>
                     <div class="form-grid">
                         <div>
@@ -86,7 +86,7 @@
                             <select id="select-sala"></select>
                         </div>
                         <div>
-                            <label>Curso Previo (Opcional):</label>
+                            <label>Curso Prévio (Opcional):</label>
                             <select id="select-curso-cadastrado" onchange="preencherNomeCurso()">
                                 <option value="">-- Selecionar curso cadastrado --</option>
                             </select>
@@ -99,13 +99,13 @@
                             <input type="text" id="input-curso-nome" placeholder="Digite ou selecione acima">
                         </div>
                         <div>
-                            <label>Turno de Utilizacao:</label>
+                            <label>Turno de Utilização:</label>
                             <select id="select-turno">
                                 <option value="">-- Selecione o Turno --</option>
-                                <option value="Manha">Manha</option>
+                                <option value="Manhã">Manhã</option>
                                 <option value="Tarde">Tarde</option>
                                 <option value="Noite">Noite</option>
-                                <option value="Manha e Tarde">Manha e Tarde</option>
+                                <option value="Manhã e Tarde">Manhã e Tarde</option>
                                 <option value="Tarde e Noite">Tarde e Noite</option>
                                 <option value="Integral">Integral</option>
                             </select>
@@ -114,7 +114,7 @@
 
                     <div class="form-grid">
                         <div>
-                            <label>Numero de Alunos:</label>
+                            <label>Número de Alunos:</label>
                             <input type="number" id="input-alunos" placeholder="Ex: 35" min="1">
                         </div>
                         <div>
@@ -125,37 +125,38 @@
 
                     <div class="form-grid">
                         <div>
-                            <label>Data de Inicio do Curso:</label>
+                            <label>Data de Início do Curso:</label>
                             <input type="date" id="data-inicio">
                         </div>
                         <div>
-                            <label>Data de Termino do Curso:</label>
+                            <label>Data de Término do Curso:</label>
                             <input type="date" id="data-fim">
                         </div>
                     </div>
 
-                    <button type="button" class="btn-action" onclick="salvarOcupacaoSalaDireto()">Salvar Ocupacao da Sala</button>
+                    <button type="button" class="btn-action" onclick="salvarOcupacaoSalaDireto()">Salvar Ocupação da Sala</button>
                 </div>
             </div>
 
         </div>
     </div>
 
-    <!-- SCRIPT EMBUTIDO PARA GARANTIR EXECUCAO IMEDIATA E SEM ERROS -->
+    <!-- BANCO DE DADOS PERMANENTE (LocalStorage Seguro) -->
     <script>
-        const defaultSalas = [
-            { id: "s1", nome: "Sala 101", bloco: "Bloco A", x: 20, y: 30 },
-            { id: "s2", nome: "Sala 102", bloco: "Bloco A", x: 40, y: 30 },
-            { id: "s3", nome: "Lab Info", bloco: "Bloco B", x: 70, y: 60 },
-            { id: "s4", nome: "Auditório", bloco: "Bloco C", x: 30, y: 80 }
-        ];
-
         function initData() {
+            // Só insere dados padrão se o banco estiver totalmente vazio pela primeira vez
             if (!localStorage.getItem("salas")) {
+                const defaultSalas = [
+                    { id: "s1", nome: "Sala 101", bloco: "Bloco A", x: 20, y: 30 },
+                    { id: "s2", nome: "Sala 102", bloco: "Bloco A", x: 40, y: 30 },
+                    { id: "s3", nome: "Lab Info", bloco: "Bloco B", x: 70, y: 60 },
+                    { id: "s4", nome: "Auditório", bloco: "Bloco C", x: 30, y: 80 }
+                ];
                 localStorage.setItem("salas", JSON.stringify(defaultSalas));
             }
             if (!localStorage.getItem("cursosCadastrados")) {
-                localStorage.setItem("cursosCadastrados", JSON.stringify(["Engenharia de Software", "Administração Avançada", "Design Gráfico"]));
+                const defaultCursos = ["Engenharia de Software", "Administração Avançada", "Design Gráfico"];
+                localStorage.setItem("cursosCadastrados", JSON.stringify(defaultCursos));
             }
             if (!localStorage.getItem("ocupacoes")) {
                 localStorage.setItem("ocupacoes", JSON.stringify({}));
