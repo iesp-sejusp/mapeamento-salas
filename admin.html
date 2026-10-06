@@ -141,10 +141,9 @@
         </div>
     </div>
 
-    <!-- BANCO DE DADOS PERMANENTE (LocalStorage Seguro) -->
+    <!-- SCRIPT DO PAINEL ADMINISTRATIVO -->
     <script>
         function initData() {
-            // Só insere dados padrão se o banco estiver totalmente vazio pela primeira vez
             if (!localStorage.getItem("salas")) {
                 const defaultSalas = [
                     { id: "s1", nome: "Sala 101", bloco: "Bloco A", x: 20, y: 30 },
