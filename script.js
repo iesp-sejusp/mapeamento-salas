@@ -1,4 +1,3 @@
-// Salas padrão iniciais (caso o localStorage esteja vazio)
 const defaultSalas = [
     { id: "s1", nome: "Sala 101", bloco: "Bloco A", x: 20, y: 30 },
     { id: "s2", nome: "Sala 102", bloco: "Bloco A", x: 40, y: 30 },
@@ -21,14 +20,13 @@ function initData() {
 // --- TELA PÚBLICA (Mapa Visual Desktop + Legenda em Cards Mobile) ---
 function carregarMapaPublico() {
     initData();
-    const salas = JSON.parse(localStorage.getItem("salas"));
-    const ocupacoes = JSON.parse(localStorage.getItem("ocupacoes"));
+    const salas = JSON.parse(localStorage.getItem("salas")) || [];
+    const ocupacoes = JSON.parse(localStorage.getItem("ocupacoes")) || {};
     
-    // 1. Renderização para Desktop (Mapa com Marcadores)
+    // Desktop
     const containerDesktop = document.getElementById("mapa-container");
     if (containerDesktop) {
         containerDesktop.innerHTML = "";
-
         const wrapper = document.createElement("div");
         wrapper.classList.add("planta-visual-wrapper");
 
@@ -67,7 +65,7 @@ function carregarMapaPublico() {
         containerDesktop.appendChild(wrapper);
     }
 
-    // 2. Renderização para Celular (Lista em Cards Detalhados)
+    // Mobile
     const containerMobile = document.getElementById("lista-mobile-container");
     if (containerMobile) {
         containerMobile.innerHTML = "";
@@ -93,18 +91,7 @@ function carregarMapaPublico() {
     }
 }
 
-// --- ÁREA ADMINISTRATIVA (admin.html) ---
-function verificarSenhaDireta() {
-    const senhaInput = document.getElementById("senha-input").value;
-    if (senhaInput === "123") {
-        document.getElementById("login-box").classList.add("hidden");
-        document.getElementById("painel-admin").classList.remove("hidden");
-        carregarPainelAdmin();
-    } else {
-        document.getElementById("erro-senha").textContent = "Senha incorreta!";
-    }
-}
-
+// --- ADMINISTRAÇÃO ---
 function carregarPainelAdmin() {
     initData();
     carregarSelectsAdmin();
@@ -118,7 +105,7 @@ function carregarSelectsAdmin() {
     
     const selectSala = document.getElementById("select-sala");
     if (selectSala) {
-        selectSala.innerHTML = "";
+        selectSala.innerHTML = `<option value="">-- Selecione a Sala --</option>`;
         salas.forEach(s => {
             selectSala.innerHTML += `<option value="${s.id}">${s.nome} (${s.bloco})</option>`;
         });
@@ -140,16 +127,20 @@ function preencherNomeCurso() {
     }
 }
 
-// --- GESTÃO DE CURSOS ---
+// Cursos
 function cadastrarNovoCursoPreDefinido() {
-    const nomeCurso = document.getElementById("novo-curso-input").value.trim();
-    if (!nomeCurso) return alert("Digite o nome do curso.");
+    const inputEl = document.getElementById("novo-curso-input");
+    const nomeCurso = inputEl.value.trim();
+    if (!nomeCurso) {
+        alert("Digite o nome do curso.");
+        return;
+    }
 
     let cursos = JSON.parse(localStorage.getItem("cursosCadastrados")) || [];
     if (!cursos.includes(nomeCurso)) {
         cursos.push(nomeCurso);
         localStorage.setItem("cursosCadastrados", JSON.stringify(cursos));
-        document.getElementById("novo-curso-input").value = "";
+        inputEl.value = "";
         carregarSelectsAdmin();
         atualizarListaCursos();
         alert("Curso pré-cadastrado com sucesso!");
@@ -176,14 +167,17 @@ function removerCurso(index) {
     atualizarListaCursos();
 }
 
-// --- GESTÃO DE SALAS ---
-function cadastrarNovaSala(event) {
-    event.preventDefault(); // Impede o recarregamento da página e o reset do login
-    
-    const nome = document.getElementById("nova-sala-nome").value.trim();
-    const bloco = document.getElementById("nova-sala-bloco").value.trim();
-    const x = parseFloat(document.getElementById("nova-sala-x").value);
-    const y = parseFloat(document.getElementById("nova-sala-y").value);
+// Salas
+function cadastrarNovaSalaDireto() {
+    const nomeEl = document.getElementById("nova-sala-nome");
+    const blocoEl = document.getElementById("nova-sala-bloco");
+    const xEl = document.getElementById("nova-sala-x");
+    const yEl = document.getElementById("nova-sala-y");
+
+    const nome = nomeEl.value.trim();
+    const bloco = blocoEl.value.trim();
+    const x = parseFloat(xEl.value);
+    const y = parseFloat(yEl.value);
 
     if (!nome || !bloco || isNaN(x) || isNaN(y)) {
         alert("Preencha todos os campos da sala corretamente.");
@@ -197,7 +191,13 @@ function cadastrarNovaSala(event) {
     localStorage.setItem("salas", JSON.stringify(salas));
 
     alert("Sala cadastrada com sucesso!");
-    document.getElementById("form-nova-sala").reset();
+    
+    // Limpar campos
+    nomeEl.value = "";
+    blocoEl.value = "";
+    xEl.value = "";
+    yEl.value = "";
+
     carregarSelectsAdmin();
     atualizarListaSalas();
 }
@@ -230,17 +230,15 @@ function removerSala(id) {
     alert("Sala removida com sucesso!");
 }
 
-// --- ATRIBUIÇÃO DE OCUPAÇÃO ---
-function salvarOcupacaoSala(event) {
-    event.preventDefault();
-    
+// Ocupações
+function salvarOcupacaoSalaDireto() {
     const salaId = document.getElementById("select-sala").value;
-    const curso = document.getElementById("input-curso-nome").value;
+    const curso = document.getElementById("input-curso-nome").value.trim();
     const turno = document.getElementById("select-turno").value;
-    const alunos = document.getElementById("input-alunos").value;
+    const alunos = document.getElementById("input-alunos").value.trim();
     const inicio = document.getElementById("data-inicio").value;
     const fim = document.getElementById("data-fim").value;
-    const telefone = document.getElementById("telefone-contato").value;
+    const telefone = document.getElementById("telefone-contato").value.trim();
 
     if (!salaId || !curso || !turno || !alunos || !inicio || !fim || !telefone) {
         alert("Preencha todos os campos da ocupação.");
@@ -252,7 +250,15 @@ function salvarOcupacaoSala(event) {
     localStorage.setItem("ocupacoes", JSON.stringify(ocupacoes));
 
     alert("Sala mapeada/ocupada com sucesso!");
-    document.getElementById("form-ocupacao").reset();
+    
+    // Limpar campos
+    document.getElementById("input-curso-nome").value = "";
+    document.getElementById("select-turno").value = "";
+    document.getElementById("input-alunos").value = "";
+    document.getElementById("data-inicio").value = "";
+    document.getElementById("data-fim").value = "";
+    document.getElementById("telefone-contato").value = "";
+    document.getElementById("select-curso-cadastrado").value = "";
 }
 
 function formatarData(dataIso) {
