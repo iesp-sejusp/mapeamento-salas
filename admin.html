@@ -6,7 +6,7 @@
     <title>Painel Administrativo - Mapeamento</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body onload="carregarPainelAdminSeLogado()">
+<body>
 
     <div class="wrapper">
         <header>
@@ -142,7 +142,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT DO PAINEL ADMINISTRATIVO -->
+    <!-- SCRIPT DE CONTROLE SEGURO -->
     <script>
         function initData() {
             if (!localStorage.getItem("salas")) {
@@ -175,13 +175,14 @@
             }
         }
 
-        function carregarPainelAdminSeLogado() {
+        // Verifica o login assim que o documento HTML é totalmente renderizado
+        window.addEventListener("DOMContentLoaded", function() {
             if (localStorage.getItem("adminLogado") === "true") {
                 document.getElementById("login-box").classList.add("hidden");
                 document.getElementById("painel-admin").classList.remove("hidden");
                 carregarPainelAdmin();
             }
-        }
+        });
 
         function carregarPainelAdmin() {
             initData();
@@ -235,3 +236,143 @@
                 carregarSelectsAdmin();
                 atualizarListaCursos();
                 alert("Curso pré-cadastrado com sucesso!");
+            } else {
+                alert("Este curso já está cadastrado.");
+            }
+        }
+
+        function atualizarListaCursos() {
+            const cursos = JSON.parse(localStorage.getItem("cursosCadastrados")) || [];
+            const ul = document.getElementById("lista-cursos-ul");
+            if (!ul) return;
+            ul.innerHTML = "";
+            cursos.forEach((c, index) => {
+                ul.innerHTML += `<li>${c} <button type="button" onclick="removerCurso(${index})" style="background:var(--danger-color); color:white; border:none; padding:3px 8px; border-radius:3px; cursor:pointer;">Excluir</button></li>`;
+            });
+        }
+
+        function removerCurso(index) {
+            let cursos = JSON.parse(localStorage.getItem("cursosCadastrados")) || [];
+            cursos.splice(index, 1);
+            localStorage.setItem("cursosCadastrados", JSON.stringify(cursos));
+            carregarSelectsAdmin();
+            atualizarListaCursos();
+        }
+
+        // Salas
+        function cadastrarNovaSalaDireto() {
+            const nomeEl = document.getElementById("nova-sala-nome");
+            const blocoEl = document.getElementById("nova-sala-bloco");
+            const xEl = document.getElementById("nova-sala-x");
+            const yEl = document.getElementById("nova-sala-y");
+
+            const nome = nomeEl.value.trim();
+            const bloco = blocoEl.value.trim();
+            const x = parseFloat(xEl.value);
+            const y = parseFloat(yEl.value);
+
+            if (!nome || !bloco || isNaN(x) || isNaN(y)) {
+                alert("Preencha todos os campos da sala corretamente.");
+                return;
+            }
+
+            let salas = JSON.parse(localStorage.getItem("salas")) || [];
+            const novoId = "s_" + Date.now();
+            
+            salas.push({ id: novoId, nome, bloco, x, y });
+            localStorage.setItem("salas", JSON.stringify(salas));
+
+            alert("Sala cadastrada com sucesso!");
+            
+            nomeEl.value = "";
+            blocoEl.value = "";
+            xEl.value = "";
+            yEl.value = "";
+
+            carregarSelectsAdmin();
+            atualizarListaSalas();
+        }
+
+        function atualizarListaSalas() {
+            const salas = JSON.parse(localStorage.getItem("salas")) || [];
+            const ul = document.getElementById("lista-salas-ul");
+            if (!ul) return;
+            ul.innerHTML = "";
+            
+            salas.forEach((s) => {
+                ul.innerHTML += `<li>${s.nome} (${s.bloco}) - Pos(%): X:${s.x}, Y:${s.y} <button type="button" onclick="removerSala('${s.id}')" style="background:var(--danger-color); color:white; border:none; padding:3px 8px; border-radius:3px; cursor:pointer;">Excluir</button></li>`;
+            });
+        }
+
+        function removerSala(id) {
+            if (!confirm("Deseja realmente excluir esta sala?")) return;
+            let salas = JSON.parse(localStorage.getItem("salas")) || [];
+            salas = salas.filter(s => s.id !== id);
+            localStorage.setItem("salas", JSON.stringify(salas));
+
+            let ocupacoes = JSON.parse(localStorage.getItem("ocupacoes")) || {};
+            if (ocupacoes[id]) {
+                delete ocupacoes[id];
+                localStorage.setItem("ocupacoes", JSON.stringify(ocupacoes));
+            }
+
+            carregarSelectsAdmin();
+            atualizarListaSalas();
+            alert("Sala removida com sucesso!");
+        }
+
+        // Ocupações
+        function salvarOcupacaoSalaDireto() {
+            const salaId = document.getElementById("select-sala").value;
+            const curso = document.getElementById("input-curso-nome").value.trim();
+            const turno = document.getElementById("select-turno").value;
+            const alunos = document.getElementById("input-alunos").value.trim();
+            const inicio = document.getElementById("data-inicio").value;
+            const fim = document.getElementById("data-fim").value;
+            const telefone = document.getElementById("telefone-contato").value.trim();
+
+            if (!salaId) {
+                alert("Por favor, selecione uma sala no campo 'Selecione a Sala'.");
+                return;
+            }
+            if (!curso || !turno || !alunos || !inicio || !fim || !telefone) {
+                alert("Preencha todos os campos da ocupação.");
+                return;
+            }
+
+            let ocupacoes = JSON.parse(localStorage.getItem("ocupacoes")) || {};
+            
+            ocupacoes[salaId] = { 
+                curso: curso, 
+                turno: turno, 
+                alunos: alunos, 
+                inicio: inicio, 
+                fim: fim, 
+                telefone: telefone 
+            };
+
+            localStorage.setItem("ocupacoes", JSON.stringify(ocupacoes));
+
+            alert("Sala mapeada e ocupação salva com sucesso!");
+            
+            document.getElementById("input-curso-nome").value = "";
+            document.getElementById("select-turno").value = "";
+            document.getElementById("input-alunos").value = "";
+            document.getElementById("data-inicio").value = "";
+            document.getElementById("data-fim").value = "";
+            document.getElementById("telefone-contato").value = "";
+            document.getElementById("select-curso-cadastrado").value = "";
+        }
+
+        function verificarBancoDeDados() {
+            const dadosSalvos = localStorage.getItem("ocupacoes");
+            const salasSalvas = localStorage.getItem("salas");
+            
+            console.log("Salas:", JSON.parse(salasSalvas));
+            console.log("Ocupações:", JSON.parse(dadosSalvos));
+            
+            alert("Dados gravados no banco local:\n\n" + (dadosSalvos || "Nenhuma ocupação cadastrada ainda."));
+        }
+    </script>
+</body>
+</html>
