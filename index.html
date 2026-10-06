@@ -1,45 +1,145 @@
-<!DOCTYPE html>  
-<html lang="pt-BR">  
-<head>  
-    <meta charset="UTF-8">  
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
-    <title>Mapa de Salas de Aula - Planta Baixa</title>  
-    <link rel="stylesheet" href="style.css">  
-</head>  
-<body onload="carregarMapaPublico()">  
-  
-    <div class="wrapper">  
-        <header>  
-            <div class="logo-container">  
-                <img src="sua-logo.png" alt="Logo Instituição" onerror="this.style.display='none'">  
-                <h1>Mapeamento de Salas de Aula</h1>  
-            </div>  
-            <nav>  
-                <a href="admin.html">Área Administrativa</a>  
-            </nav>  
-        </header>  
-  
-        <div class="container">  
-            <h2>Planta Baixa e Localização das Salas</h2>  
-            <p>Consulte abaixo o status, turno, número de alunos e detalhes de ocupação das salas.</p>  
-  
-            <!-- Visualização para Computadores (Mapa com marcadores) -->  
-            <div id="mapa-desktop-view">  
-                <div id="mapa-container"></div>  
-                <div class="legenda-planta">  
-                    <div class="legenda-item"><span class="bola-status livre"></span> Disponível</div>  
-                    <div class="legenda-item"><span class="bola-status ocupada"></span> Ocupada</div>  
-                </div>  
-            </div>  
-  
-            <!-- Visualização para Celulares (Legenda em lista/cards detalhados) -->  
-            <div id="lista-mobile-view">  
-                <h3 style="margin-top: 0; font-size: 18px; color: var(--primary-color);">Status das Salas (Versão Mobile)</h3>  
-                <div id="lista-mobile-container"></div>  
-            </div>  
-        </div>  
-    </div>  
-  
-    <script src="script.js"></script>  
-</body>  
-</html>  
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Salas de Aula - Planta Baixa</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body onload="carregarMapaPublico()">
+
+    <div class="wrapper">
+        <header>
+            <div class="logo-container">
+                <img src="sua-logo.png" alt="Logo Instituição" onerror="this.style.display='none'">
+                <h1>Mapeamento de Salas de Aula</h1>
+            </div>
+            <nav>
+                <a href="admin.html">Área Administrativa</a>
+            </nav>
+        </header>
+
+        <div class="container">
+            <h2>Planta Baixa e Localização das Salas</h2>
+            <p>Consulte abaixo o status, turno, número de alunos e detalhes de ocupação das salas.</p>
+
+            <!-- Visualização para Computadores (Mapa com marcadores) -->
+            <div id="mapa-desktop-view">
+                <div id="mapa-container"></div>
+                <div class="legenda-planta">
+                    <div class="legenda-item"><span class="bola-status livre"></span> Disponível</div>
+                    <div class="legenda-item"><span class="bola-status ocupada"></span> Ocupada</div>
+                </div>
+            </div>
+
+            <!-- Visualização para Celulares (Legenda em lista/cards detalhados) -->
+            <div id="lista-mobile-view">
+                <h3 style="margin-top: 0; font-size: 18px; color: var(--primary-color);">Status das Salas (Versão Mobile)</h3>
+                <div id="lista-mobile-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT EMBUTIDO PARA CARREGAR O MAPA E OS CARDS COM TURNO E ALUNOS -->
+    <script>
+        const defaultSalas = [
+            { id: "s1", nome: "Sala 101", bloco: "Bloco A", x: 20, y: 30 },
+            { id: "s2", nome: "Sala 102", bloco: "Bloco A", x: 40, y: 30 },
+            { id: "s3", nome: "Lab Info", bloco: "Bloco B", x: 70, y: 60 },
+            { id: "s4", nome: "Auditório", bloco: "Bloco C", x: 30, y: 80 }
+        ];
+
+        function initData() {
+            if (!localStorage.getItem("salas")) {
+                localStorage.setItem("salas", JSON.stringify(defaultSalas));
+            }
+            if (!localStorage.getItem("cursosCadastrados")) {
+                localStorage.setItem("cursosCadastrados", JSON.stringify(["Engenharia de Software", "Administração Avançada", "Design Gráfico"]));
+            }
+            if (!localStorage.getItem("ocupacoes")) {
+                localStorage.setItem("ocupacoes", JSON.stringify({}));
+            }
+        }
+
+        function carregarMapaPublico() {
+            initData();
+            const salas = JSON.parse(localStorage.getItem("salas")) || [];
+            const ocupacoes = JSON.parse(localStorage.getItem("ocupacoes")) || {};
+            
+            // 1. Renderização para Desktop (Mapa com Marcadores)
+            const containerDesktop = document.getElementById("mapa-container");
+            if (containerDesktop) {
+                containerDesktop.innerHTML = "";
+
+                const wrapper = document.createElement("div");
+                wrapper.classList.add("planta-visual-wrapper");
+
+                const imgContainer = document.createElement("div");
+                imgContainer.classList.add("planta-imagem-container");
+
+                const img = document.createElement("img");
+                img.src = "planta-baixa.png";
+                img.alt = "Planta Baixa do Prédio";
+                imgContainer.appendChild(img);
+
+                salas.forEach(sala => {
+                    const ocupacao = ocupacoes[sala.id];
+                    const isOcupada = ocupacao && ocupacao.curso;
+
+                    const marcador = document.createElement("div");
+                    marcador.className = `sala-marcador ${isOcupada ? 'ocupada' : 'livre'}`;
+                    
+                    const posX = sala.x !== undefined ? sala.x : 50;
+                    const posY = sala.y !== undefined ? sala.y : 50;
+                    marcador.style.left = `${posX}%`;
+                    marcador.style.top = `${posY}%`;
+
+                    marcador.innerHTML = `
+                        ${sala.nome}
+                        <div class="tooltip-info">
+                            <strong>${sala.nome} (${sala.bloco})</strong><br>
+                            Status: ${isOcupada ? 'Ocupada' : 'Disponível'}<br>
+                            ${isOcupada ? `Curso: ${ocupacao.curso}<br>Turno: ${ocupacao.turno \vert{}\vert{} 'Não informado'}<br>Alunos: ${ocupacao.alunos || 'N/A'}<br>Término: ${formatarData(ocupacao.fim)}<br>Contato:${ocupacao.telefone}` : 'Livre para uso'}
+                        </div>
+                    `;
+                    imgContainer.appendChild(marcador);
+                });
+
+                wrapper.appendChild(imgContainer);
+                containerDesktop.appendChild(wrapper);
+            }
+
+            // 2. Renderização para Celular (Lista em Cards Detalhados)
+            const containerMobile = document.getElementById("lista-mobile-container");
+            if (containerMobile) {
+                containerMobile.innerHTML = "";
+                salas.forEach(sala => {
+                    const ocupacao = ocupacoes[sala.id];
+                    const isOcupada = ocupacao && ocupacao.curso;
+
+                    const cardMobile = document.createElement("div");
+                    cardMobile.className = `sala-card-mobile ${isOcupada ? 'ocupada' : 'livre'}`;
+                    cardMobile.innerHTML = `
+                        <h4>${sala.nome} (${sala.bloco})</h4>
+                        <p><strong>Status:</strong> ${isOcupada ? '<span style="color:var(--danger-color)">Ocupada</span>' : '<span style="color:var(--accent-color)">Disponível</span>'}</p>
+                        ${isOcupada ? `
+                            <p><strong>Curso:</strong> ${ocupacao.curso}</p>
+                            <p><strong>Turno:</strong> ${ocupacao.turno || 'Não informado'}</p>
+                            <p><strong>Nº de Alunos:</strong> ${ocupacao.alunos || 'N/A'}</p>
+                            <p><strong>Período:</strong> ${formatarData(ocupacao.inicio)} até ${formatarData(ocupacao.fim)}</p>
+                            <p><strong>Contato:</strong> ${ocupacao.telefone}</p>
+                        ` : `<p>Sala livre para agendamento.</p>`}
+                    `;
+                    containerMobile.appendChild(cardMobile);
+                });
+            }
+        }
+
+        function formatarData(dataIso) {
+            if (!dataIso) return "";
+            const partes = dataIso.split("-");
+            return `${partes[2]}/${partes[1]}/${partes[0]}`;
+        }
+    </script>
+</body>
+</html>
