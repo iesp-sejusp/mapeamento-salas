@@ -35,29 +35,29 @@
             <div style="margin-bottom: 30px;">
                 <h3>Cadastro de Salas</h3>
                 <p>Cadastre novas salas informando o nome, bloco e a posicao percentual (X e Y de 0 a 100) na planta baixa:</p>
-                <form id="form-nova-sala" onsubmit="cadastrarNovaSala(event)">
+                <div>
                     <div class="form-grid">
                         <div>
                             <label>Nome da Sala:</label>
-                            <input type="text" id="nova-sala-nome" placeholder="Ex: Sala 103" required>
+                            <input type="text" id="nova-sala-nome" placeholder="Ex: Sala 103">
                         </div>
                         <div>
                             <label>Bloco:</label>
-                            <input type="text" id="nova-sala-bloco" placeholder="Ex: Bloco A" required>
+                            <input type="text" id="nova-sala-bloco" placeholder="Ex: Bloco A">
                         </div>
                     </div>
                     <div class="form-grid">
                         <div>
                             <label>Posicao X (% na imagem):</label>
-                            <input type="number" id="nova-sala-x" placeholder="Ex: 50" min="0" max="100" step="any" required>
+                            <input type="number" id="nova-sala-x" placeholder="Ex: 50" min="0" max="100" step="any">
                         </div>
                         <div>
                             <label>Posicao Y (% na imagem):</label>
-                            <input type="number" id="nova-sala-y" placeholder="Ex: 40" min="0" max="100" step="any" required>
+                            <input type="number" id="nova-sala-y" placeholder="Ex: 40" min="0" max="100" step="any">
                         </div>
                     </div>
-                    <button type="submit" class="btn-action" style="background: var(--primary-color);">Adicionar Sala</button>
-                </form>
+                    <button type="button" class="btn-action" style="background: var(--primary-color);" onclick="cadastrarNovaSalaDireto()">Adicionar Sala</button>
+                </div>
                 <ul id="lista-salas-ul" class="list-group" style="margin-top: 15px;"></ul>
             </div>
 
@@ -69,7 +69,7 @@
                 <p>Cadastre os nomes dos cursos antecipadamente para preenchimento rapido:</p>
                 <div style="display: flex; gap: 10px;">
                     <input type="text" id="novo-curso-input" placeholder="Nome do novo curso">
-                    <button class="btn-action" style="margin-top: 0; width: auto; white-space: nowrap;" onclick="cadastrarNovoCursoPreDefinido()">Adicionar Curso</button>
+                    <button type="button" class="btn-action" style="margin-top: 0; width: auto; white-space: nowrap;" onclick="cadastrarNovoCursoPreDefinido()">Adicionar Curso</button>
                 </div>
                 <ul id="lista-cursos-ul" class="list-group"></ul>
             </div>
@@ -79,11 +79,11 @@
             <!-- SECAO DE ATRIBUICAO DE OCUPACAO -->
             <div>
                 <h3>Atribuir Ocupacao a Sala</h3>
-                <form id="form-ocupacao" onsubmit="salvarOcupacaoSala(event)">
+                <div>
                     <div class="form-grid">
                         <div>
                             <label>Selecione a Sala:</label>
-                            <select id="select-sala" required></select>
+                            <select id="select-sala"></select>
                         </div>
                         <div>
                             <label>Curso Previo (Opcional):</label>
@@ -96,11 +96,11 @@
                     <div class="form-grid">
                         <div>
                             <label>Nome do Curso Realizado:</label>
-                            <input type="text" id="input-curso-nome" placeholder="Digite ou selecione acima" required>
+                            <input type="text" id="input-curso-nome" placeholder="Digite ou selecione acima">
                         </div>
                         <div>
                             <label>Turno de Utilizacao:</label>
-                            <select id="select-turno" required>
+                            <select id="select-turno">
                                 <option value="">-- Selecione o Turno --</option>
                                 <option value="Manha">Manha</option>
                                 <option value="Tarde">Tarde</option>
@@ -115,33 +115,33 @@
                     <div class="form-grid">
                         <div>
                             <label>Numero de Alunos:</label>
-                            <input type="number" id="input-alunos" placeholder="Ex: 35" min="1" required>
+                            <input type="number" id="input-alunos" placeholder="Ex: 35" min="1">
                         </div>
                         <div>
                             <label>Telefone para Contato:</label>
-                            <input type="text" id="telefone-contato" placeholder="(00) 00000-0000" required>
+                            <input type="text" id="telefone-contato" placeholder="(00) 00000-0000">
                         </div>
                     </div>
 
                     <div class="form-grid">
                         <div>
                             <label>Data de Inicio do Curso:</label>
-                            <input type="date" id="data-inicio" required>
+                            <input type="date" id="data-inicio">
                         </div>
                         <div>
                             <label>Data de Termino do Curso:</label>
-                            <input type="date" id="data-fim" required>
+                            <input type="date" id="data-fim">
                         </div>
                     </div>
 
-                    <button type="submit" class="btn-action">Salvar Ocupacao da Sala</button>
-                </form>
+                    <button type="button" class="btn-action" onclick="salvarOcupacaoSalaDireto()">Salvar Ocupacao da Sala</button>
+                </div>
             </div>
 
         </div>
     </div>
 
-    <!-- Script de segurança embutido para garantir o login imediato -->
+    <!-- Script de login e seguranca -->
     <script>
         function verificarSenhaDireta() {
             const senhaInput = document.getElementById("senha-input").value;
