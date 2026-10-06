@@ -76,7 +76,7 @@
                 imgContainer.style.maxWidth = "100%";
 
                 const img = document.createElement("img");
-                img.src = "planta-baixa.png";
+                img.src = "planta-baixa.jpg";
                 img.alt = "Planta Baixa do Prédio";
                 
                 img.style.width = "100%";
@@ -88,7 +88,7 @@
                 img.onerror = function() {
                     imgContainer.innerHTML = `
                         <div style="padding: 40px; background: #ffe6e6; color: #d9534f; border: 2px dashed #d9534f; text-align: center; border-radius: 8px;">
-                            <h3 style="margin: 0 0 10px 0;">⚠️ Imagem "planta-baixa.png" não encontrada!</h3>
+                            <h3 style="margin: 0 0 10px 0;">⚠️ Imagem "planta-baixa.jpg" não encontrada!</h3>
                             <p style="margin: 0; font-size: 14px;">Coloque o arquivo de imagem na mesma pasta do arquivo <strong>index.html</strong> com o nome exato.</p>
                         </div>
                     `;
