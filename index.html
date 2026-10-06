@@ -25,7 +25,9 @@
 
             <!-- Visualização para Computadores (Mapa com marcadores) -->
             <div id="mapa-desktop-view">
-                <div id="mapa-container"></div>
+                <div id="mapa-container" style="border: 2px dashed #0056b3; padding: 20px; text-align: center;">
+                    Carregando mapa...
+                </div>
                 <div class="legenda-planta">
                     <div class="legenda-item"><span class="bola-status livre"></span> Disponível</div>
                     <div class="legenda-item"><span class="bola-status ocupada"></span> Ocupada</div>
@@ -40,9 +42,20 @@
         </div>
     </div>
 
-    <!-- SCRIPT COM INICIALIZAÇÃO FORÇADA AUTOMÁTICA -->
+    <!-- SCRIPT DE DIAGNÓSTICO E RENDERIZAÇÃO -->
     <script>
-        function initData() {
+        console.log("Script do mapa iniciado com sucesso!");
+
+        function carregarMapaPublico() {
+            const containerDesktop = document.getElementById("mapa-container");
+            const containerMobile = document.getElementById("lista-mobile-container");
+
+            if (!containerDesktop) {
+                alert("Erro crítico: Elemento 'mapa-container' não foi encontrado no HTML!");
+                return;
+            }
+
+            // Garante dados no localStorage
             if (!localStorage.getItem("salas")) {
                 const defaultSalas = [
                     { id: "s1", nome: "Sala 101", bloco: "Bloco A", x: 20, y: 30 },
@@ -52,81 +65,67 @@
                 ];
                 localStorage.setItem("salas", JSON.stringify(defaultSalas));
             }
-            if (!localStorage.getItem("cursosCadastrados")) {
-                const defaultCursos = ["Engenharia de Software", "Administração Avançada", "Design Gráfico"];
-                localStorage.setItem("cursosCadastrados", JSON.stringify(defaultCursos));
-            }
             if (!localStorage.getItem("ocupacoes")) {
                 localStorage.setItem("ocupacoes", JSON.stringify({}));
             }
-        }
 
-        function carregarMapaPublico() {
-            initData();
             const salas = JSON.parse(localStorage.getItem("salas")) || [];
             const ocupacoes = JSON.parse(localStorage.getItem("ocupacoes")) || {};
             
-            // 1. Renderização para Desktop (Mapa com Marcadores)
-            const containerDesktop = document.getElementById("mapa-container");
-            if (containerDesktop) {
-                containerDesktop.innerHTML = "";
+            console.log("Salas carregadas:", salas);
 
-                const wrapper = document.createElement("div");
-                wrapper.classList.add("planta-visual-wrapper");
+            // 1. Renderização Desktop
+            containerDesktop.innerHTML = "";
 
-                const imgContainer = document.createElement("div");
-                imgContainer.classList.add("planta-imagem-container");
+            const wrapper = document.createElement("div");
+            wrapper.classList.add("planta-visual-wrapper");
 
-                const img = document.createElement("img");
-                img.src = "planta-baixa.png";
-                img.alt = "Planta Baixa do Prédio";
+            const imgContainer = document.createElement("div");
+            imgContainer.classList.add("planta-imagem-container");
+
+            const img = document.createElement("img");
+            img.src = "planta-baixa.png";
+            img.alt = "Planta Baixa do Prédio";
+            
+            img.style.width = "100%";
+            img.style.maxHeight = "600px";
+            img.style.display = "block";
+            img.style.objectFit = "contain";
+            img.style.backgroundColor = "#fff";
+
+            img.onerror = function() {
+                console.error("Erro ao carregar a imagem planta-baixa.png");
+            };
+
+            imgContainer.appendChild(img);
+
+            salas.forEach(sala => {
+                const ocupacao = ocupacoes[sala.id];
+                const isOcupada = ocupacao && ocupacao.curso;
+
+                const marcador = document.createElement("div");
+                marcador.className = `sala-marcador ${isOcupada ? 'ocupada' : 'livre'}`;
                 
-                img.style.width = "100%";
-                img.style.maxHeight = "600px";
-                img.style.display = "block";
-                img.style.objectFit = "contain";
-                img.style.backgroundColor = "#f8f9fa";
+                const posX = sala.x !== undefined ? sala.x : 50;
+                const posY = sala.y !== undefined ? sala.y : 50;
+                marcador.style.left = `${posX}%`;
+                marcador.style.top = `${posY}%`;
 
-                img.onerror = function() {
-                    imgContainer.innerHTML = `
-                        <div style="padding: 40px; text-align: center; color: #dc3545; background: #fff3f3;">
-                            <h3>⚠️ Imagem da planta baixa não encontrada!</h3>
-                            <p>O navegador não conseguiu abrir o arquivo <strong>planta-baixa.png</strong>.</p>
-                        </div>
-                    `;
-                };
+                marcador.innerHTML = `
+                    ${sala.nome}
+                    <div class="tooltip-info">
+                        <strong>${sala.nome} (${sala.bloco})</strong><br>
+                        Status: ${isOcupada ? 'Ocupada' : 'Disponível'}<br>
+                        ${isOcupada ? `Curso: ${ocupacao.curso}<br>Turno: ${ocupacao.turno \vert{}\vert{} 'Não informado'}<br>Alunos: ${ocupacao.alunos || 'N/A'}<br>Término: ${formatarData(ocupacao.fim)}<br>Contato:${ocupacao.telefone}` : 'Livre para uso'}
+                    </div>
+                `;
+                imgContainer.appendChild(marcador);
+            });
 
-                imgContainer.appendChild(img);
+            wrapper.appendChild(imgContainer);
+            containerDesktop.appendChild(wrapper);
 
-                salas.forEach(sala => {
-                    const ocupacao = ocupacoes[sala.id];
-                    const isOcupada = ocupacao && ocupacao.curso;
-
-                    const marcador = document.createElement("div");
-                    marcador.className = `sala-marcador ${isOcupada ? 'ocupada' : 'livre'}`;
-                    
-                    const posX = sala.x !== undefined ? sala.x : 50;
-                    const posY = sala.y !== undefined ? sala.y : 50;
-                    marcador.style.left = `${posX}%`;
-                    marcador.style.top = `${posY}%`;
-
-                    marcador.innerHTML = `
-                        ${sala.nome}
-                        <div class="tooltip-info">
-                            <strong>${sala.nome} (${sala.bloco})</strong><br>
-                            Status: ${isOcupada ? 'Ocupada' : 'Disponível'}<br>
-                            ${isOcupada ? `Curso: ${ocupacao.curso}<br>Turno: ${ocupacao.turno \vert{}\vert{} 'Não informado'}<br>Alunos: ${ocupacao.alunos || 'N/A'}<br>Término: ${formatarData(ocupacao.fim)}<br>Contato:${ocupacao.telefone}` : 'Livre para uso'}
-                        </div>
-                    `;
-                    imgContainer.appendChild(marcador);
-                });
-
-                wrapper.appendChild(imgContainer);
-                containerDesktop.appendChild(wrapper);
-            }
-
-            // 2. Renderização para Celular (Lista em Cards Detalhados)
-            const containerMobile = document.getElementById("lista-mobile-container");
+            // 2. Renderização Mobile
             if (containerMobile) {
                 containerMobile.innerHTML = "";
                 salas.forEach(sala => {
@@ -157,7 +156,7 @@
             return `${partes[2]}/${partes[1]}/${partes[0]}`;
         }
 
-        // Garante que o mapa carrega assim que a página abre, sem falhas
+        // Executa assim que a página carrega
         window.addEventListener("DOMContentLoaded", carregarMapaPublico);
     </script>
 </body>
