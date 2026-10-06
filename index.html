@@ -6,7 +6,7 @@
     <title>Mapa de Salas de Aula - Planta Baixa</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body onload="carregarMapaPublico()">
+<body>
 
     <div class="wrapper">
         <header>
@@ -40,7 +40,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT DE RENDERIZAÇÃO COM FORÇAMENTO DE EXIBIÇÃO DA IMAGEM -->
+    <!-- SCRIPT COM INICIALIZAÇÃO FORÇADA AUTOMÁTICA -->
     <script>
         function initData() {
             if (!localStorage.getItem("salas")) {
@@ -81,7 +81,6 @@
                 img.src = "planta-baixa.png";
                 img.alt = "Planta Baixa do Prédio";
                 
-                // Força estilos visíveis na imagem para garantir que ela apareça na tela
                 img.style.width = "100%";
                 img.style.maxHeight = "600px";
                 img.style.display = "block";
@@ -157,6 +156,9 @@
             const partes = dataIso.split("-");
             return `${partes[2]}/${partes[1]}/${partes[0]}`;
         }
+
+        // Garante que o mapa carrega assim que a página abre, sem falhas
+        window.addEventListener("DOMContentLoaded", carregarMapaPublico);
     </script>
 </body>
 </html>
