@@ -37,9 +37,22 @@
             margin-bottom: 12px !important;
             border-radius: 6px !important;
         }
+        .btn-atualizar {
+            background: #003366;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .btn-atualizar:hover {
+            background: #002244;
+        }
     </style>
 
-    <!-- Firebase App (core) e Realtime Database SDKs -->
+    <!-- Firebase SDKs Compat -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
@@ -60,9 +73,12 @@
             <h2>Planta Baixa e Localização das Salas</h2>
             <p>Consulte abaixo o status em tempo real, turnos e ocupações das salas sincronizadas na nuvem.</p>
 
-            <!-- Área de Status -->
+            <!-- Área de Status com Botão de Forçar Atualização -->
             <div id="status-conexao" style="background: #fff3cd; color: #856404; border: 1px solid #ffeeba;">
                 🔄 Conectando ao banco de dados na nuvem...
+            </div>
+            <div style="text-align: right; margin-bottom: 15px;">
+                <button class="btn-atualizar" onclick="carregarSistema()">🔄 Atualizar Dados Agora</button>
             </div>
 
             <!-- Visualização para Computadores -->
@@ -84,7 +100,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT DE CONEXÃO DIRETA -->
+    <!-- SCRIPT DE REQUISIÇÃO DIRETA HTTPS -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
@@ -97,21 +113,27 @@
             measurementId: "G-4KG8K3ZQK0"
         };
 
-        // Inicialização padrão segura
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const db = firebase.database();
 
         function carregarSistema() {
             const statusDiv = document.getElementById("status-conexao");
+            statusDiv.style.background = "#fff3cd";
+            statusDiv.style.color = "#856404";
+            statusDiv.style.borderColor = "#ffeeba";
+            statusDiv.innerHTML = "🔄 Buscando dados atualizados da nuvem...";
 
-            db.ref('/').on('value', (snapshot) => {
+            // Usa once('value') para buscar imediatamente sem travar em stream websocket
+            db.ref('/').once('value').then((snapshot) => {
                 const dados = snapshot.val();
                 
                 if (!dados) {
                     statusDiv.style.background = "#fff3cd";
                     statusDiv.style.color = "#856404";
                     statusDiv.style.borderColor = "#ffeeba";
-                    statusDiv.innerHTML = "⚠️ Banco conectado, mas está vazio. Cadastre uma sala pelo painel administrativo.";
+                    statusDiv.innerHTML = "⚠️ Banco conectado, mas está vazio. Cadastre salas pelo painel administrativo.";
                     renderizarTudo({}, {});
                     return;
                 }
@@ -119,18 +141,18 @@
                 statusDiv.style.background = "#d4edda";
                 statusDiv.style.color = "#155724";
                 statusDiv.style.borderColor = "#c3e6cb";
-                statusDiv.innerHTML = "✅ Conectado com sucesso à nuvem! Dados sincronizados em tempo real.";
+                statusDiv.innerHTML = "✅ Dados sincronizados com sucesso da nuvem!";
 
                 const salas = dados.salas || {};
                 const ocupacoes = dados.ocupacoes || {};
                 
                 renderizarTudo(salas, ocupacoes);
 
-            }, (error) => {
+            }).catch((error) => {
                 statusDiv.style.background = "#f8d7da";
                 statusDiv.style.color = "#721c24";
                 statusDiv.style.borderColor = "#f5c6cb";
-                statusDiv.innerHTML = "❌ Erro de permissão ou conexão: " + error.message;
+                statusDiv.innerHTML = "❌ Erro ao buscar dados: " + error.message;
             });
         }
 
@@ -139,7 +161,7 @@
             const containerMobile = document.getElementById("lista-mobile-container");
             const idsSalas = Object.keys(salasObj);
 
-            // 1. Render Desktop (Mapa / Planta Baixa)
+            // 1. Render Desktop
             if (containerDesktop) {
                 containerDesktop.innerHTML = "";
                 if (idsSalas.length === 0) {
