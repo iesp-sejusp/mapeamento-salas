@@ -189,14 +189,14 @@
 </head>
 <body>
 
-    <!-- TELA DE LOGIN ADMINISTRATIVO COM VALIDAÇÃO DIRETA -->
+    <!-- TELA DE LOGIN ADMINISTRATIVO -->
     <div id="login-overlay" class="no-print">
         <div class="login-box">
             <img src="sua-logo.png" alt="Logo IESP" class="login-logo" onerror="this.style.display='none'">
             <h3 style="color: #003366; margin-top:0;">Área Restrita - IESP</h3>
             <p style="font-size: 13px; color: #666;">Digite a senha administrativa:</p>
-            <input type="password" id="senha-admin" placeholder="Senha de acesso" onkeypress="if(event.key === 'Enter') { if(document.getElementById('senha-admin').value === 'sargento2026') { document.getElementById('login-overlay').style.display='none'; document.getElementById('painel-conteudo').style.display='block'; carregarPainelAdmin(); } else { document.getElementById('erro-senha').style.display='block'; } }">
-            <button onclick="if(document.getElementById('senha-admin').value === 'sargento2026') { document.getElementById('login-overlay').style.display='none'; document.getElementById('painel-conteudo').style.display='block'; carregarPainelAdmin(); } else { document.getElementById('erro-senha').style.display='block'; }">Entrar no Painel</button>
+            <input type="password" id="senha-admin" placeholder="Senha de acesso" onkeypress="if(event.key === 'Enter') validarSenha()">
+            <button onclick="validarSenha()">Entrar no Painel</button>
             <p id="erro-senha" style="color: #dc3545; font-size: 12px; margin-top: 10px; display: none;">Senha incorreta!</p>
         </div>
     </div>
@@ -366,6 +366,22 @@
     </div>
 
     <script>
+        // Ambas as variações da função mapeadas globalmente para eliminar erros de cache
+        const SENHA_ADMIN = "sargento2026";
+
+        function validarSenha() {
+            var digitada = document.getElementById("senha-admin").value;
+            if (digitada === SENHA_ADMIN) {
+                document.getElementById("login-overlay").style.display = "none";
+                document.getElementById("painel-conteudo").style.display = "block";
+                carregarPainelAdmin();
+            } else {
+                document.getElementById("erro-senha").style.display = "block";
+            }
+        }
+        window.validarSenha = validarSenha;
+        window.validarSenhaAdmin = validarSenha;
+
         const firebaseConfig = {
             apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
             authDomain: "salas-iesp.firebaseapp.com",
