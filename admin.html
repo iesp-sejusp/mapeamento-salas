@@ -53,10 +53,21 @@
                     <button type="button" class="btn-action" style="background: var(--primary-color);" onclick="cadastrarSalaNuvem()">Adicionar Sala</button>
                 </div>
 
-                <h4 style="margin-top: 25px; color: var(--primary-color);">Salas Cadastradas e Status Atual</h4>
+                <h4 style="margin-top: 25px; color: var(--primary-color);">Salas Cadastradas</h4>
                 <ul id="lista-salas-ul" class="list-group" style="margin-top: 10px;">
                     <li style="padding: 10px; color: #666;">Carregando dados da nuvem...</li>
                 </ul>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
+
+            <!-- SECAO DE OCUPAÇÕES ATIVAS (NOVO) -->
+            <div style="margin-bottom: 30px;">
+                <h3>Salas Ocupadas e Cursos em Andamento</h3>
+                <p>Visão geral de todas as salas que estão atualmente ocupadas com os respectivos cursos:</p>
+                <div id="relatorio-ocupacoes-container" style="margin-top: 15px;">
+                    <p style="color: #666;">Carregando ocupações...</p>
+                </div>
             </div>
 
             <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
@@ -184,7 +195,6 @@
             db.ref('/').on('value', (snapshot) => {
                 const dados = snapshot.val();
                 
-                // Se o banco estiver vazio, inicializa dados padrão
                 if (!dados) {
                     const defaultSalas = {
                         "s1": { nome: "Sala 101", bloco: "Bloco A", x: 20, y: 30 },
@@ -207,13 +217,21 @@
             // Select e Lista de Salas
             const selectSala = document.getElementById("select-sala");
             const listaSalasUl = document.getElementById("lista-salas-ul");
+            const relatorioContainer = document.getElementById("relatorio-ocupacoes-container");
+
             if (selectSala) selectSala.innerHTML = `<option value="">-- Selecione a Sala --</option>`;
             if (listaSalasUl) listaSalasUl.innerHTML = "";
+            if (relatorioContainer) relatorioContainer.innerHTML = "";
 
             const idsSalas = Object.keys(salasObj);
-            if (idsSalas.length === 0 && listaSalasUl) {
-                listaSalasUl.innerHTML = `<li style="padding: 10px; color: #666;">Nenhuma sala cadastrada.</li>`;
+            if (idsSalas.length === 0) {
+                if (listaSalasUl) listaSalasUl.innerHTML = `<li style="padding: 10px; color: #666;">Nenhuma sala cadastrada.</li>`;
+                if (relatorioContainer) relatorioContainer.innerHTML = `<p style="color: #666;">Nenhuma sala cadastrada no sistema.</p>`;
+                return;
             }
+
+            let contadorOcupadas = 0;
+            let htmlRelatorio = "";
 
             idsSalas.forEach(id => {
                 const s = salasObj[id];
@@ -227,15 +245,34 @@
                 if (listaSalasUl) {
                     listaSalasUl.innerHTML += `
                         <li style="padding: 10px; margin-bottom: 8px; border-left: 4px solid ${isOcupada ? '#dc3545' : '#28a745'}; background: #f8f9fa;">
-                            <strong>${s.nome}</strong> (${s.bloco}) - Pos(%): X:${s.x}, Y:${s.y}<br>
-                            <span style="font-size: 13px; color: #555;">
-                                Status: <strong>${isOcupada ? 'Ocupada (' + ocupacao.curso + ' | Inst: ' + (ocupacao.instituicao || 'Não informada') + ')' : 'Disponível'}</strong>
-                            </span>
+                            <strong>${s.nome}</strong> (${s.bloco}) - Pos(%): X:${s.x}, Y:${s.y}
                             <button type="button" onclick="removerSalaNuvem('${id}')" style="background:var(--danger-color); color:white; border:none; padding:3px 8px; border-radius:3px; cursor:pointer; float:right;">Excluir Sala</button>
                         </li>
                     `;
                 }
+
+                if (isOcupada) {
+                    contadorOcupadas++;
+                    htmlRelatorio += `
+                        <div style="background: #fff3f3; border: 1px solid #f5c6cb; border-left: 5px solid #dc3545; padding: 12px; margin-bottom: 10px; border-radius: 4px;">
+                            <h4 style="margin: 0 0 5px 0; color: #721c24;">🏫 ${s.nome} (${s.bloco})</h4>
+                            <p style="margin: 3px 0;"><strong>Curso Realizado:</strong> ${ocupacao.curso}</p>
+                            <p style="margin: 3px 0;"><strong>Instituição Promotora:</strong> ${ocupacao.instituicao || 'Não informada'}</p>
+                            <p style="margin: 3px 0;"><strong>Turno:</strong> ${ocupacao.turno || 'N/A'} | <strong>Alunos:</strong> ${ocupacao.alunos || 'N/A'}</p>
+                            <p style="margin: 3px 0;"><strong>Período:</strong> ${formatarData(ocupacao.inicio)} até ${formatarData(ocupacao.fim)} | <strong>Contato:</strong> ${ocupacao.telefone}</p>
+                            <button type="button" onclick="liberarSalaNuvem('${id}')" style="background: #ffc107; color: #000; border: none; padding: 4px 10px; border-radius: 3px; cursor: pointer; margin-top: 8px; font-weight: bold;">🔓 Liberar Sala</button>
+                        </div>
+                    `;
+                }
             });
+
+            if (relatorioContainer) {
+                if (contadorOcupadas === 0) {
+                    relatorioContainer.innerHTML = `<p style="color: #666; font-style: italic;">Nenhuma sala está ocupada no momento. Todas estão disponíveis.</p>`;
+                } else {
+                    relatorioContainer.innerHTML = htmlRelatorio;
+                }
+            }
 
             // Select e Lista de Cursos
             const selectCurso = document.getElementById("select-curso-cadastrado");
@@ -264,6 +301,13 @@
                     listaInstUl.innerHTML += `<li style="padding:5px; background:#fff; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">${nomeInst} <button type="button" onclick="removerInstituicaoNuvem('${iKey}')" style="background:var(--danger-color); color:white; border:none; padding:2px 6px; border-radius:3px; cursor:pointer;">Excluir</button></li>`;
                 }
             });
+        }
+
+        function formatarData(dataIso) {
+            if (!dataIso) return "";
+            const partes = dataIso.split("-");
+            if (partes.length < 3) return dataIso;
+            return `${partes[2]}/${partes[1]}/${partes[0]}`;
         }
 
         function preencherCurso() {
@@ -299,9 +343,15 @@
         }
 
         function removerSalaNuvem(id) {
-            if (!confirm("Excluir esta sala?")) return;
+            if (!confirm("Excluir esta sala permanentemente?")) return;
             db.ref('salas/' + id).remove();
             db.ref('ocupacoes/' + id).remove();
+        }
+
+        function liberarSalaNuvem(id) {
+            if (!confirm("Deseja liberar esta sala (remover a ocupação atual)?")) return;
+            db.ref('ocupacoes/' + id).remove();
+            alert("Sala liberada com sucesso!");
         }
 
         function cadastrarCursoNuvem() {
