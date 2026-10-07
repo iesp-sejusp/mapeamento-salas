@@ -59,7 +59,7 @@
         }
         .btn-voltar:hover { background: #5a6268; }
         
-        /* Tela de Login com fundo personalizado */
+        /* Tela de Login */
         #login-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -204,4 +204,105 @@
 
     <div class="wrapper" id="painel-conteudo" style="display: none;">
         <header class="no-print">
-            <div class="logo
+            <div class="logo-container">
+                <img src="sua-logo.png" alt="Logo IESP" onerror="this.style.display='none'">
+                <h1>Painel Administrativo - IESP / CBMAP</h1>
+            </div>
+            <a href="index.html" class="btn-voltar">Ver Mapa Público</a>
+        </header>
+
+        <!-- 1. CADASTRAR SALAS -->
+        <div class="form-section no-print">
+            <h3 style="margin-top:0; color:#003366;">1. Cadastrar Nova Sala (Ilimitado)</h3>
+            <form id="form-sala" onsubmit="cadastrarSala(event)">
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 2;">
+                        <label>Nome da Sala:</label>
+                        <input type="text" id="sala-nome" required placeholder="Ex: B7">
+                    </div>
+                    <div class="form-group" style="flex: 2;">
+                        <label>Bloco:</label>
+                        <input type="text" id="sala-bloco" required placeholder="Ex: B">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Pos X (%):</label>
+                        <input type="number" id="sala-x" value="50" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Pos Y (%):</label>
+                        <input type="number" id="sala-y" value="50" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-acao">➕ Salvar Sala</button>
+            </form>
+        </div>
+
+        <!-- 2. CADASTRAR CURSOS E INSTITUIÇÕES -->
+        <div style="display: flex; gap: 20px;" class="no-print">
+            <div class="form-section" style="flex: 1;">
+                <h3 style="margin-top:0; color:#003366;">Cadastrar Novo Curso</h3>
+                <form id="form-curso" onsubmit="cadastrarCurso(event)">
+                    <div class="form-group">
+                        <label>Nome do Curso:</label>
+                        <input type="text" id="novo-curso" required placeholder="Ex: Atendimento Pré-Hospitalar">
+                    </div>
+                    <button type="submit" class="btn-acao">➕ Adicionar Curso</button>
+                </form>
+            </div>
+
+            <div class="form-section" style="flex: 1;">
+                <h3 style="margin-top:0; color:#003366;">Cadastrar Instituição</h3>
+                <form id="form-inst" onsubmit="cadastrarInstituicao(event)">
+                    <div class="form-group">
+                        <label>Nome da Instituição:</label>
+                        <input type="text" id="nova-inst" required placeholder="Ex: CBMAP / PM / SEJUSP">
+                    </div>
+                    <button type="submit" class="btn-acao">➕ Adicionar Instituição</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 3. ALOCAR CURSO EM SALA -->
+        <div class="form-section no-print">
+            <h3 style="margin-top:0; color:#003366;">2. Alocar Curso / Ocupar Sala</h3>
+            <form id="form-ocupacao" onsubmit="alocarCurso(event)">
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 2;">
+                        <label>Selecione a Sala:</label>
+                        <select id="select-sala-alocacao" required>
+                            <option value="">Carregando salas...</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 2;">
+                        <label>Curso:</label>
+                        <select id="select-curso-alocacao" required>
+                            <option value="">Carregando cursos...</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 2;">
+                        <label>Instituição:</label>
+                        <select id="select-inst-alocacao" required>
+                            <option value="">Carregando instituições...</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Turno:</label>
+                        <select id="oc-turno" required>
+                            <option value="Manhã">Manhã</option>
+                            <option value="Tarde">Tarde</option>
+                            <option value="Manhã e Tarde">Manhã e Tarde</option>
+                            <option value="Integral">Integral</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Nº de Alunos:</label>
+                        <input type="number" id="oc-alunos" required placeholder="Ex: 35">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Início:</label>
+                        <input type="date" id="oc-inicio" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>F
