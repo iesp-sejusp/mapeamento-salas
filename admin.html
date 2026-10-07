@@ -7,7 +7,6 @@
     
     <style>
         body {
-            /* Fundo com a imagem 'seu-fundo.jpg' e escurecimento elegante */
             background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('seu-fundo.jpg') no-repeat center center fixed;
             background-size: cover;
             background-color: #002244;
@@ -191,7 +190,7 @@
 </head>
 <body>
 
-    <!-- TELA DE LOGIN ADMINISTRATIVO COM LOGO E FUNDO -->
+    <!-- TELA DE LOGIN ADMINISTRATIVO -->
     <div id="login-overlay" class="no-print">
         <div class="login-box">
             <img src="sua-logo.png" alt="Logo IESP" class="login-logo" onerror="this.style.display='none'">
@@ -205,20 +204,4 @@
 
     <div class="wrapper" id="painel-conteudo" style="display: none;">
         <header class="no-print">
-            <div class="logo-container">
-                <img src="sua-logo.png" alt="Logo IESP" onerror="this.style.display='none'">
-                <h1>Painel Administrativo - IESP / CBMAP</h1>
-            </div>
-            <a href="index.html" class="btn-voltar">Ver Mapa Público</a>
-        </header>
-
-        <!-- 1. CADASTRAR SALAS -->
-        <div class="form-section no-print">
-            <h3 style="margin-top:0; color:#003366;">1. Cadastrar Nova Sala (Ilimitado)</h3>
-            <form id="form-sala" onsubmit="cadastrarSala(event)">
-                <div style="display: flex; gap: 15px;">
-                    <div class="form-group" style="flex: 2;">
-                        <label>Nome da Sala:</label>
-                        <input type="text" id="sala-nome" required placeholder="Ex: B7">
-                    </div>
-                    <div class="form-group
+            <div class="logo
