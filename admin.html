@@ -3,260 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo - Nuvem</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Área Administrativa - Gestão de Salas</title>
     
-    <!-- CSS de Impressão Idêntico ao Modelo Visual -->
     <style>
-        #area-impressao-oficial {
-            display: none;
+        body {
+            background: #f4f6f9;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #003366;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        h1 { color: #003366; font-size: 22px; margin: 0; }
+        .btn-voltar {
+            background: #6c757d;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        /* Tela de Login */
+        #login-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .login-box {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            width: 320px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .login-box input {
+            width: 100%;
+            padding: 10px;
+            margin: 15px 0;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .login-box button {
+            background: #003366;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            width: 100%;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
         }
 
-        @media print {
-            body * {
-                display: none !important;
-            }
-            #area-impressao-oficial, #area-impressao-oficial * {
-                display: block !important;
-                visibility: visible !important;
-            }
-            #area-impressao-oficial {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                background: white;
-                padding: 10px;
-            }
-            #area-impressao-oficial img {
-                max-height: 65px !important;
-                display: block !important;
-                margin: 0 auto 10px auto !important;
-            }
-            #area-impressao-oficial table {
-                width: 100% !important;
-                border-collapse: collapse !important;
-                table-layout: fixed !important;
-            }
-            #area-impressao-oficial tr {
-                display: table-row !important;
-            }
-            #area-impressao-oficial th, #area-impressao-oficial td {
-                display: table-cell !important;
-                border: 1px solid #d1d9e0 !important;
-                padding: 10px 8px !important;
-                font-size: 13px !important;
-                word-wrap: break-word !important;
-                overflow-wrap: break-word !important;
-            }
-            @page {
-                size: portrait;
-                margin: 10mm;
-            }
+        .form-group {
+            margin-bottom: 15px;
         }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #333; }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .btn-acao {
+            background: #003366;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-liberar {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: left;
+            font-size: 14px;
+        }
+        th { background: #003366; color: white; }
     </style>
 
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs Compat -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
-<body onload="iniciarPainel()">
+<body>
 
-    <!-- ÁREA EXCLUSIVA PARA IMPRESSÃO OFICIAL -->
-    <div id="area-impressao-oficial">
-        <div style="text-align: center; margin-bottom: 15px;">
-            <img src="sua-logo.png" alt="Logo IESP" style="max-height: 65px; margin-bottom: 8px;" onerror="this.style.display='none'">
+    <!-- TELA DE LOGIN ADMINISTRATIVO -->
+    <div id="login-overlay">
+        <div class="login-box">
+            <h3 style="color: #003366; margin-top:0;">Área Restrita</h3>
+            <p style="font-size: 13px; color: #666;">Digite a senha administrativa para continuar:</p>
+            <input type="password" id="senha-admin" placeholder="Senha de acesso" onkeypress="if(event.key === 'Enter') validarSenha()">
+            <button onclick="validarSenha()">Entrar no Painel</button>
+            <p id="erro-senha" style="color: #dc3545; font-size: 12px; margin-top: 10px; display: none;">Senha incorreta!</p>
         </div>
-        <div id="tabela-impressao-container"></div>
     </div>
 
-    <div class="wrapper">
+    <div class="wrapper" id="painel-conteudo" style="display: none;">
         <header>
-            <div class="logo-container">
-                <img src="sua-logo.png" alt="Logo" onerror="this.style.display='none'">
-                <h1>Painel do Administrador (Sincronizado)</h1>
-            </div>
-            <nav>
-                <a href="index.html" style="background: #6c757d;">Ver Mapa Público</a>
-            </nav>
+            <h1>Painel Administrativo - Gestão de Salas</h1>
+            <a href="index.html" class="btn-voltar">Ver Mapa Público</a>
         </header>
 
-        <div class="container" style="margin-top: 30px;">
-            
-            <!-- 1. SECAO DE CADASTRO DE SALAS -->
-            <div style="margin-bottom: 30px;">
-                <h3>Cadastro de Salas</h3>
-                <p>Cadastre novas salas informando o nome, bloco e a posição percentual (X e Y de 0 a 100):</p>
-                <div>
-                    <div class="form-grid">
-                        <div>
-                            <label>Nome da Sala:</label>
-                            <input type="text" id="nova-sala-nome" placeholder="Ex: Sala 103">
-                        </div>
-                        <div>
-                            <label>Bloco:</label>
-                            <input type="text" id="nova-sala-bloco" placeholder="Ex: Bloco A">
-                        </div>
+        <!-- Seção 1: Cadastrar Nova Sala -->
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 6px; margin-bottom: 30px; border: 1px solid #e9ecef;">
+            <h3 style="margin-top:0; color:#003366;">Cadastrar Nova Sala</h3>
+            <form id="form-sala" onsubmit="cadastrarSala(event)">
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 2;">
+                        <label>Nome da Sala (ex: B5, C1, E1):</label>
+                        <input type="text" id="sala-nome" required placeholder="Ex: B7">
                     </div>
-                    <div class="form-grid">
-                        <div>
-                            <label>Posição X (%):</label>
-                            <input type="number" id="nova-sala-x" placeholder="Ex: 50" min="0" max="100" step="any">
-                        </div>
-                        <div>
-                            <label>Posição Y (%):</label>
-                            <input type="number" id="nova-sala-y" placeholder="Ex: 40" min="0" max="100" step="any">
-                        </div>
+                    <div class="form-group" style="flex: 2;">
+                        <label>Bloco:</label>
+                        <input type="text" id="sala-bloco" required placeholder="Ex: B">
                     </div>
-                    <button type="button" class="btn-action" style="background: var(--primary-color);" onclick="cadastrarSalaNuvem()">Adicionar Sala</button>
-                </div>
-
-                <h4 style="margin-top: 25px; color: var(--primary-color);">Salas Cadastradas</h4>
-                <ul id="lista-salas-ul" class="list-group" style="margin-top: 10px;">
-                    <li style="padding: 10px; color: #666;">Carregando dados da nuvem...</li>
-                </ul>
-            </div>
-
-            <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
-
-            <!-- 2. SECAO DE PRÉ-CADASTRO DE CURSOS E INSTITUIÇÕES -->
-            <div style="margin-bottom: 30px;" class="form-grid">
-                <div>
-                    <h3>Pré-cadastro de Cursos</h3>
-                    <div style="display: flex; gap: 10px; margin-top: 10px;">
-                        <input type="text" id="novo-curso-input" placeholder="Ex: Curso de Operações Táticas">
-                        <button type="button" class="btn-action" style="margin-top: 0; width: auto; white-space: nowrap;" onclick="cadastrarCursoNuvem()">Adicionar Curso</button>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Pos X (%):</label>
+                        <input type="number" id="sala-x" value="50" required>
                     </div>
-                    <ul id="lista-cursos-ul" class="list-group" style="margin-top: 10px; max-height: 150px; overflow-y: auto;"></ul>
-                </div>
-
-                <div>
-                    <h3>Cadastrar Instituição Promotora</h3>
-                    <div style="display: flex; gap: 10px; margin-top: 10px;">
-                        <input type="text" id="nova-instituicao-input" placeholder="Ex: CBMAP / IESP">
-                        <button type="button" class="btn-action" style="margin-top: 0; width: auto; white-space: nowrap;" onclick="cadastrarInstituicaoNuvem()">Adicionar Instituição</button>
-                    </div>
-                    <ul id="lista-instituicoes-ul" class="list-group" style="margin-top: 10px; max-height: 150px; overflow-y: auto;"></ul>
-                </div>
-            </div>
-
-            <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
-
-            <!-- 3. SECAO DE ATRIBUICAO DE OCUPACAO (FORMULÁRIO) -->
-            <div style="margin-bottom: 30px;">
-                <h3>Atribuir Ocupação à Sala</h3>
-                <div>
-                    <div class="form-grid">
-                        <div>
-                            <label>Selecione a Sala:</label>
-                            <select id="select-sala">
-                                <option value="">Carregando salas...</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label>Instituição Promotora (Opcional):</label>
-                            <select id="select-instituicao-cadastrada" onchange="preencherInstituicao()">
-                                <option value="">-- Selecionar instituição pré-cadastrada --</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-grid">
-                        <div>
-                            <label>Nome da Instituição Promotora:</label>
-                            <input type="text" id="input-instituicao-nome" placeholder="Digite ou selecione acima">
-                        </div>
-                        <div>
-                            <label>Curso Prévio (Opcional):</label>
-                            <select id="select-curso-cadastrado" onchange="preencherCurso()">
-                                <option value="">-- Selecionar curso pré-cadastrado --</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-grid">
-                        <div>
-                            <label>Nome do Curso Realizado:</label>
-                            <input type="text" id="input-curso-nome" placeholder="Digite ou selecione acima">
-                        </div>
-                        <div>
-                            <label>Turno de Utilização:</label>
-                            <select id="select-turno">
-                                <option value="">-- Selecione o Turno --</option>
-                                <option value="Manhã">Manhã</option>
-                                <option value="Tarde">Tarde</option>
-                                <option value="Noite">Noite</option>
-                                <option value="Manhã e Tarde">Manhã e Tarde</option>
-                                <option value="Tarde e Noite">Tarde e Noite</option>
-                                <option value="Integral">Integral</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-grid">
-                        <div>
-                            <label>Número de Alunos:</label>
-                            <input type="number" id="input-alunos" placeholder="Ex: 44" min="1">
-                        </div>
-                        <div>
-                            <label>Telefone para Contato:</label>
-                            <input type="text" id="telefone-contato" placeholder="(96) 99109-0909">
-                        </div>
-                    </div>
-
-                    <div class="form-grid">
-                        <div>
-                            <label>Data de Início:</label>
-                            <input type="date" id="data-inicio">
-                        </div>
-                        <div>
-                            <label>Data de Término:</label>
-                            <input type="date" id="data-fim">
-                        </div>
-                    </div>
-
-                    <button type="button" class="btn-action" onclick="salvarOcupacaoNuvem()">Salvar Ocupação na Nuvem</button>
-                </div>
-            </div>
-
-            <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
-
-            <!-- 4. SECAO DE OCUPAÇÕES ATIVAS (FINAL DA PÁGINA - PARTE 1) -->
-            <div style="margin-bottom: 30px;">
-                <h3>Salas Ocupadas e Cursos em Andamento</h3>
-                <p>Visão geral de todas as salas ocupadas no momento:</p>
-                <div id="relatorio-ocupacoes-container" style="margin-top: 15px;">
-                    <p style="color: #666;">Carregando ocupações...</p>
-                </div>
-            </div>
-
-            <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
-
-            <!-- 5. SECAO DE RELATÓRIO MENSAL CRONOLÓGICO (O ÚLTIMO DA PÁGINA) -->
-            <div style="margin-bottom: 30px; background: #eef2f7; padding: 20px; border-radius: 8px; border: 1px solid #d1d9e0;">
-                <h3>📊 Relatório de Ocupação por Mês (Ordem Cronológica)</h3>
-                <p>Relatório Mensal do Uso de Salas:</p>
-                
-                <div style="display: flex; gap: 15px; align-items: flex-end; margin-bottom: 15px;">
-                    <div style="flex: 1;">
-                        <label>Selecione o Mês e Ano:</label>
-                        <input type="month" id="filtro-mes-ano" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" onchange="gerarRelatorioMensal()">
-                    </div>
-                    <div>
-                        <button type="button" class="btn-action" style="margin-top: 0; background: #28a745;" onclick="window.print()">🖨️ Imprimir Relatório</button>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Pos Y (%):</label>
+                        <input type="number" id="sala-y" value="50" required>
                     </div>
                 </div>
-
-                <div id="resultado-relatorio-mensal" style="background: #fff; padding: 15px; border-radius: 6px; border: 1px solid #ddd;">
-                    <p style="color: #666; margin: 0;">Selecione um mês acima para exibir o relatório correspondente.</p>
-                </div>
-            </div>
-
+                <button type="submit" class="btn-acao">➕ Salvar Nova Sala</button>
+            </form>
         </div>
+
+        <!-- Seção 2: Gerenciar e Ocupar Salas -->
+        <h3>Gerenciamento e Ocupação de Salas</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Sala / Bloco</th>
+                    <th>Status Atual</th>
+                    <th>Curso / Ocupação</th>
+                    <th>Ações</th>
+                </tr>
+            T</thead>
+            <tbody id="tabela-gerenciamento">
+                <tr><td colspan="4" style="text-align:center;">Carregando dados...</td></tr>
+            </tbody>
+        </table>
     </div>
 
-    <!-- SCRIPT DE GERENCIAMENTO FIREBASE -->
     <script>
+        // Defina aqui a senha de acesso administrativo desejada
+        const SENHA_ADMIN = "sargento2026";
+
+        function validarSenha() {
+            var digitada = document.getElementById("senha-admin").value;
+            if (digitada === SENHA_ADMIN) {
+                document.getElementById("login-overlay").style.display = "none";
+                document.getElementById("painel-conteudo").style.display = "block";
+                carregarPainelAdmin();
+            } else {
+                document.getElementById("erro-senha").style.display = "block";
+            }
+        }
+
         const firebaseConfig = {
             apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
             authDomain: "salas-iesp.firebaseapp.com",
@@ -268,345 +212,95 @@
             measurementId: "G-4KG8K3ZQK0"
         };
 
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const db = firebase.database();
 
-        let dadosGlobaisCache = {};
+        let dadosGlobais = {};
 
-        function iniciarPainel() {
-            db.ref('/').on('value', (snapshot) => {
-                const dados = snapshot.val();
-                
-                if (!dados) {
-                    const defaultSalas = {
-                        "s1": { nome: "Sala 101", bloco: "Bloco A", x: 20, y: 30 },
-                        "s2": { nome: "Sala 102", bloco: "Bloco A", x: 40, y: 30 }
-                    };
-                    db.ref('salas').set(defaultSalas);
-                    return;
-                }
-
-                dadosGlobaisCache = dados;
-                const salas = dados.salas || {};
-                const ocupacoes = dados.ocupacoes || {};
-                const cursos = dados.cursos || {};
-                const instituicoes = dados.instituicoes || {};
-                
-                atualizarInterfaceAdmin(salas, ocupacoes, cursos, instituicoes);
-                
-                const mesInput = document.getElementById("filtro-mes-ano").value;
-                if (mesInput) {
-                    gerarRelatorioMensal();
-                }
+        function carregarPainelAdmin() {
+            db.ref('/').on('value', function(snapshot) {
+                dadosGlobais = snapshot.val() || {};
+                renderizarTabelaAdmin(dadosGlobais.salas || {}, dadosGlobais.ocupacoes || {});
             });
         }
 
-        function atualizarInterfaceAdmin(salasObj, ocupacoesObj, cursosObj, instObj) {
-            const selectSala = document.getElementById("select-sala");
-            const listaSalasUl = document.getElementById("lista-salas-ul");
-            const relatorioContainer = document.getElementById("relatorio-ocupacoes-container");
+        // Cadastro de nova sala usando push() para permitir dezenas/centenas de salas sem limite
+        function cadastrarSala(event) {
+            event.preventDefault();
+            var nome = document.getElementById("sala-nome").value;
+            var bloco = document.getElementById("sala-bloco").value;
+            var x = document.getElementById("sala-x").value;
+            var y = document.getElementById("sala-y").value;
 
-            if (selectSala) selectSala.innerHTML = `<option value="">-- Selecione a Sala --</option>`;
-            if (listaSalasUl) listaSalasUl.innerHTML = "";
-            if (relatorioContainer) relatorioContainer.innerHTML = "";
+            db.ref('salas').push({
+                nome: nome,
+                bloco: bloco,
+                x: Number(x),
+                y: Number(y)
+            }).then(function() {
+                alert("Sala cadastrada com sucesso!");
+                document.getElementById("form-sala").reset();
+            }).catch(function(error) {
+                alert("Erro ao cadastrar sala: " + error.message);
+            });
+        }
 
-            const idsSalas = Object.keys(salasObj);
-            if (idsSalas.length === 0) {
-                if (listaSalasUl) listaSalasUl.innerHTML = `<li style="padding: 10px; color: #666;">Nenhuma sala cadastrada.</li>`;
-                if (relatorioContainer) relatorioContainer.innerHTML = `<p style="color: #666;">Nenhuma sala cadastrada no sistema.</p>`;
+        // Função corrigida para liberar sala (remove o nó de ocupação correspondente)
+        window.liberarSala = function(salaId) {
+            if (confirm("Tem certeza que deseja liberar esta sala?")) {
+                db.ref('ocupacoes/' + salaId).remove().then(function() {
+                    alert("Sala liberada com sucesso!");
+                }).catch(function(error) {
+                    alert("Erro ao liberar sala: " + error.message);
+                });
+            }
+        };
+
+        function renderizarTabelaAdmin(salasObj, ocupacoesObj) {
+            var tbody = document.getElementById("tabela-gerenciamento");
+            var ids = Object.keys(salasObj);
+
+            tbody.innerHTML = "";
+
+            if (ids.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Nenhuma sala cadastrada.</td></tr>";
                 return;
             }
 
-            let contadorOcupadas = 0;
-            let htmlRelatorio = "";
+            ids.forEach(function(id) {
+                var sala = salasObj[id];
+                var ocupacao = ocupacoesObj[id] || {};
+                var isOcupada = ocupacao && ocupacao.curso;
 
-            idsSalas.forEach(id => {
-                const s = salasObj[id];
-                const ocupacao = ocupacoesObj[id];
-                const isOcupada = ocupacao && ocupacao.curso;
-
-                if (selectSala) {
-                    selectSala.innerHTML += `<option value="${id}">${s.nome} (${s.bloco})</option>`;
-                }
-
-                if (listaSalasUl) {
-                    listaSalasUl.innerHTML += `
-                        <li style="padding: 10px; margin-bottom: 8px; border-left: 4px solid ${isOcupada ? '#dc3545' : '#28a745'}; background: #f8f9fa;">
-                            <strong>${s.nome}</strong> (${s.bloco}) - Pos(%): X:${s.x}, Y:${s.y}
-                            <button type="button" onclick="removerSalaNuvem('${id}')" style="background:var(--danger-color); color:white; border:none; padding:3px 8px; border-radius:3px; cursor:pointer; float:right;">Excluir Sala</button>
-                        </li>
-                    `;
-                }
-
+                var tr = document.createElement("tr");
+                
+                var tdSala = document.createElement("td");
+                tdSala.innerHTML = "<strong>Sala " + sala.nome + "</strong> (Bloco " + sala.bloco + ")";
+                
+                var tdStatus = document.createElement("td");
+                tdStatus.innerHTML = isOcupada ? "<span style='color:#dc3545; font-weight:bold;'>Ocupada</span>" : "<span style='color:#28a745; font-weight:bold;'>Disponível</span>";
+                
+                var tdCurso = document.createElement("td");
+                tdCurso.innerHTML = isOcupada ? (ocupacao.curso + " (" + (ocupacao.instituicao || "N/A") + ") - Turno: " + (ocupacao.turno || "N/A")) : "<em style='color:#666;'>Nenhum curso alocado</em>";
+                
+                var tdAcoes = document.createElement("td");
                 if (isOcupada) {
-                    contadorOcupadas++;
-                    htmlRelatorio += `
-                        <div style="background: #fff3f3; border: 1px solid #f5c6cb; border-left: 5px solid #dc3545; padding: 12px; margin-bottom: 10px; border-radius: 4px;">
-                            <h4 style="margin: 0 0 5px 0; color: #721c24;">🏫 ${s.nome} (${s.bloco})</h4>
-                            <p style="margin: 3px 0;"><strong>Curso Realizado:</strong> ${ocupacao.curso}</p>
-                            <p style="margin: 3px 0;"><strong>Instituição Promotora:</strong> ${ocupacao.instituicao || 'Não informada'}</p>
-                            <p style="margin: 3px 0;"><strong>Turno:</strong> ${ocupacao.turno || 'N/A'} | <strong>Alunos:</strong> ${ocupacao.alunos || 'N/A'}</p>
-                            <p style="margin: 3px 0; color: #0056b3;"><strong>📅 Data de Início:</strong> ${formatarData(ocupacao.inicio)} | <strong>Data de Término:</strong> ${formatarData(ocupacao.fim)}</p>
-                            <p style="margin: 3px 0;"><strong>Contato:</strong> ${ocupacao.telefone}</p>
-                            <button type="button" onclick="liberarSalaNuvem('${id}')" style="background: #ffc107; color: #000; border: none; padding: 4px 10px; border-radius: 3px; cursor: pointer; margin-top: 8px; font-weight: bold;">🔓 Liberar Sala</button>
-                        </div>
-                    `;
-                }
-            });
-
-            if (relatorioContainer) {
-                if (contadorOcupadas === 0) {
-                    relatorioContainer.innerHTML = `<p style="color: #666; font-style: italic;">Nenhuma sala está ocupada no momento. Todas estão disponíveis.</p>`;
+                    var btnLiberar = document.createElement("button");
+                    btnLiberar.className = "btn-liberar";
+                    btnLiberar.innerHTML = "🔓 Liberar Sala";
+                    btnLiberar.onclick = function() { liberarSala(id); };
+                    tdAcoes.appendChild(btnLiberar);
                 } else {
-                    relatorioContainer.innerHTML = htmlRelatorio;
+                    tdAcoes.innerHTML = "<span style='color:#666; font-size:12px;'>Livre</span>";
                 }
-            }
 
-            // Cursos
-            const selectCurso = document.getElementById("select-curso-cadastrado");
-            const listaCursosUl = document.getElementById("lista-cursos-ul");
-            if (selectCurso) selectCurso.innerHTML = `<option value="">-- Selecionar curso pré-cadastrado --</option>`;
-            if (listaCursosUl) listaCursosUl.innerHTML = "";
-
-            Object.keys(cursosObj).forEach(cKey => {
-                const nomeCurso = cursosObj[cKey];
-                if (selectCurso) selectCurso.innerHTML += `<option value="${nomeCurso}">${nomeCurso}</option>`;
-                if (listaCursosUl) {
-                    listaCursosUl.innerHTML += `<li style="padding:5px; background:#fff; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">${nomeCurso} <button type="button" onclick="removerCursoNuvem('${cKey}')" style="background:var(--danger-color); color:white; border:none; padding:2px 6px; border-radius:3px; cursor:pointer;">Excluir</button></li>`;
-                }
-            });
-
-            // Instituições
-            const selectInst = document.getElementById("select-instituicao-cadastrada");
-            const listaInstUl = document.getElementById("lista-instituicoes-ul");
-            if (selectInst) selectInst.innerHTML = `<option value="">-- Selecionar instituição pré-cadastrada --</option>`;
-            if (listaInstUl) listaInstUl.innerHTML = "";
-
-            Object.keys(instObj).forEach(iKey => {
-                const nomeInst = instObj[iKey];
-                if (selectInst) selectInst.innerHTML += `<option value="${nomeInst}">${nomeInst}</option>`;
-                if (listaInstUl) {
-                    listaInstUl.innerHTML += `<li style="padding:5px; background:#fff; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">${nomeInst} <button type="button" onclick="removerInstituicaoNuvem('${iKey}')" style="background:var(--danger-color); color:white; border:none; padding:2px 6px; border-radius:3px; cursor:pointer;">Excluir</button></li>`;
-                }
-            });
-        }
-
-        function gerarRelatorioMensal() {
-            const mesAnoSelecionado = document.getElementById("filtro-mes-ano").value;
-            const resultadoDiv = document.getElementById("resultado-relatorio-mensal");
-            const tabelaImpressaoContainer = document.getElementById("tabela-impressao-container");
-
-            if (!mesAnoSelecionado) {
-                resultadoDiv.innerHTML = `<p style="color: #666; margin: 0;">Selecione um mês acima para exibir o relatório correspondente.</p>`;
-                if (tabelaImpressaoContainer) tabelaImpressaoContainer.innerHTML = "";
-                return;
-            }
-
-            const salas = dadosGlobaisCache.salas || {};
-            const ocupacoes = dadosGlobaisCache.ocupacoes || {};
-            const idsSalas = Object.keys(ocupacoes);
-
-            let listaOcupacoesMes = [];
-
-            idsSalas.forEach(salaId => {
-                const oc = ocupacoes[salaId];
-                const sala = salas[salaId] || { nome: "Sala Removida", bloco: "N/A" };
-
-                if (oc && oc.inicio && oc.fim) {
-                    const mesInicio = oc.inicio.substring(0, 7);
-                    const mesFim = oc.fim.substring(0, 7);
-
-                    if (mesInicio <= mesAnoSelecionado && mesFim >= mesAnoSelecionado) {
-                        listaOcupacoesMes.push({
-                            salaNome: `${sala.nome} (${sala.bloco})`,
-                            curso: oc.curso,
-                            instituicao: oc.instituicao || 'Não informada',
-                            inicio: oc.inicio,
-                            fim: oc.fim,
-                            alunos: parseInt(oc.alunos) || 0
-                        });
-                    }
-                }
-            });
-
-            // Ordena estritamente em ordem cronológica (pela data de início)
-            listaOcupacoesMes.sort((a, b) => a.inicio.localeCompare(b.inicio));
-
-            if (listaOcupacoesMes.length === 0) {
-                const msgVazia = `<p style="color: #d9534f; margin: 0;">Nenhum curso ou ocupação registrada para o mês selecionado (${formatarMesAnoVisual(mesAnoSelecionado)}).</p>`;
-                resultadoDiv.innerHTML = msgVazia;
-                if (tabelaImpressaoContainer) tabelaImpressaoContainer.innerHTML = "";
-            } else {
-                let totalAlunosMes = 0;
-
-                // Template de estrutura idêntico ao modelo aprovado
-                let montarHTML = (paraImpressao = false) => {
-                    let html = `
-                        <div style="background: #fff; ${paraImpressao ? '' : 'padding: 5px;'}">
-                            <h4 style="margin-top: 0; color: #333; margin-bottom: 12px; font-size: 15px; font-weight: bold;">Relatório de Ocupação - ${formatarMesAnoVisual(mesAnoSelecionado)} (${listaOcupacoesMes.length} registro(s) em ordem cronológica)</h4>
-                            <table style="width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed;">
-                                <thead>
-                                    <tr style="background: #f1f3f5; border-bottom: 2px solid #ccc; text-align: left;">
-                                        <th style="padding: 10px 8px; border: 1px solid #d1d9e0; width: 15%;">Sala</th>
-                                        <th style="padding: 10px 8px; border: 1px solid #d1d9e0; width: 28%;">Curso Realizado</th>
-                                        <th style="padding: 10px 8px; border: 1px solid #d1d9e0; width: 20%;">Instituição</th>
-                                        <th style="padding: 10px 8px; border: 1px solid #d1d9e0; width: 14%; text-align: center;">Início</th>
-                                        <th style="padding: 10px 8px; border: 1px solid #d1d9e0; width: 14%; text-align: center;">Término</th>
-                                        <th style="padding: 10px 8px; border: 1px solid #d1d9e0; width: 9%; text-align: center;">Alunos</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                    `;
-
-                    listaOcupacoesMes.forEach(item => {
-                        if (!paraImpressao) totalAlunosMes += item.alunos;
-                        html += `
-                            <tr style="border-bottom: 1px solid #eee;">
-                                <td style="padding: 10px 8px; border: 1px solid #d1d9e0; width: 15%; word-wrap: break-word; overflow-wrap: break-word;"><strong>${item.salaNome}</strong></td>
-                                <td style="padding: 10px 8px; border: 1px solid #d1d9e0; width: 28%; word-wrap: break-word; overflow-wrap: break-word;">${item.curso}</td>
-                                <td style="padding: 10px 8px; border: 1px solid #d1d9e0; width: 20%; word-wrap: break-word; overflow-wrap: break-word;">${item.instituicao}</td>
-                                <td style="padding: 10px 8px; border: 1px solid #d1d9e0; width: 14%; text-align: center; white-space: nowrap;">${formatarData(item.inicio)}</td>
-                                <td style="padding: 10px 8px; border: 1px solid #d1d9e0; width: 14%; text-align: center; white-space: nowrap;">${formatarData(item.fim)}</td>
-                                <td style="padding: 10px 8px; border: 1px solid #d1d9e0; width: 9%; text-align: center;">${item.alunos}</td>
-                            </tr>
-                        `;
-                    });
-
-                    let somaAlunos = listaOcupacoesMes.reduce((acc, curr) => acc + curr.alunos, 0);
-
-                    html += `
-                                </tbody>
-                                <tfoot>
-                                    <tr style="background: #e9ecef; font-weight: bold;">
-                                        <td colspan="5" style="padding: 10px 8px; border: 1px solid #d1d9e0; text-align: right;">TOTAL DE ALUNOS ATENDIDOS NO MÊS:</td>
-                                        <td style="padding: 10px 8px; border: 1px solid #d1d9e0; text-align: center; color: #003366; font-size: 15px;">${somaAlunos}</td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                    `;
-                    return html;
-                };
-                
-                resultadoDiv.innerHTML = montarHTML(false);
-                if (tabelaImpressaoContainer) tabelaImpressaoContainer.innerHTML = montarHTML(true);
-            }
-        }
-
-        function formatarMesAnoVisual(anoMesStr) {
-            const partes = anoMesStr.split("-");
-            if (partes.length < 2) return anoMesStr;
-            const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-            return `${meses[parseInt(partes[1]) - 1]} de ${partes[0]}`;
-        }
-
-        function formatarData(dataIso) {
-            if (!dataIso) return "Não informada";
-            const partes = dataIso.split("-");
-            if (partes.length < 3) return dataIso;
-            return `${partes[2]}/${partes[1]}/${partes[0]}`;
-        }
-
-        function preencherCurso() {
-            const sel = document.getElementById("select-curso-cadastrado").value;
-            if (sel) document.getElementById("input-curso-nome").value = sel;
-        }
-
-        function preencherInstituicao() {
-            const sel = document.getElementById("select-instituicao-cadastrada").value;
-            if (sel) document.getElementById("input-instituicao-nome").value = sel;
-        }
-
-        function cadastrarSalaNuvem() {
-            const nome = document.getElementById("nova-sala-nome").value.trim();
-            const bloco = document.getElementById("nova-sala-bloco").value.trim();
-            const x = parseFloat(document.getElementById("nova-sala-x").value);
-            const y = parseFloat(document.getElementById("nova-sala-y").value);
-
-            if (!nome || !bloco || isNaN(x) || isNaN(y)) {
-                alert("Preencha todos os campos da sala corretamente.");
-                return;
-            }
-
-            db.ref('salas').push({ nome, bloco, x, y }, (err) => {
-                if (!err) {
-                    alert("Sala cadastrada!");
-                    document.getElementById("nova-sala-nome").value = "";
-                    document.getElementById("nova-sala-bloco").value = "";
-                    document.getElementById("nova-sala-x").value = "";
-                    document.getElementById("nova-sala-y").value = "";
-                }
-            });
-        }
-
-        function removerSalaNuvem(id) {
-            if (!confirm("Excluir esta sala permanentemente?")) return;
-            db.ref('salas/' + id).remove();
-            db.ref('ocupacoes/' + id).remove();
-        }
-
-        function liberarSalaNuvem(id) {
-            if (!confirm("Deseja liberar esta sala (remover a ocupação atual)?")) return;
-            db.ref('ocupacoes/' + id).remove();
-            alert("Sala liberada com sucesso!");
-        }
-
-        function cadastrarCursoNuvem() {
-            const val = document.getElementById("novo-curso-input").value.trim();
-            if (!val) { alert("Digite o nome do curso."); return; }
-            db.ref('cursos').push(val, (err) => {
-                if (!err) document.getElementById("novo-curso-input").value = "";
-            });
-        }
-
-        function removerCursoNuvem(key) {
-            db.ref('cursos/' + key).remove();
-        }
-
-        function cadastrarInstituicaoNuvem() {
-            const val = document.getElementById("nova-instituicao-input").value.trim();
-            if (!val) { alert("Digite o nome da instituição."); return; }
-            db.ref('instituicoes').push(val, (err) => {
-                if (!err) document.getElementById("nova-instituicao-input").value = "";
-            });
-        }
-
-        function removerInstituicaoNuvem(key) {
-            db.ref('instituicoes/' + key).remove();
-        }
-
-        function salvarOcupacaoNuvem() {
-            const salaId = document.getElementById("select-sala").value;
-            const instituicao = document.getElementById("input-instituicao-nome").value.trim();
-            const curso = document.getElementById("input-curso-nome").value.trim();
-            const turno = document.getElementById("select-turno").value;
-            const alunos = document.getElementById("input-alunos").value.trim();
-            const inicio = document.getElementById("data-inicio").value;
-            const fim = document.getElementById("data-fim").value;
-            const telefone = document.getElementById("telefone-contato").value.trim();
-
-            if (!salaId) {
-                alert("Por favor, selecione uma sala.");
-                return;
-            }
-            if (!curso || !turno || !alunos || !inicio || !fim || !telefone) {
-                alert("Preencha todos os campos obrigatórios da ocupação.");
-                return;
-            }
-
-            db.ref('ocupacoes/' + salaId).set({
-                instituicao, curso, turno, alunos, inicio, fim, telefone
-            }, (error) => {
-                if (!error) {
-                    alert("Ocupação salva na nuvem com sucesso!");
-                    document.getElementById("input-instituicao-nome").value = "";
-                    document.getElementById("input-curso-nome").value = "";
-                    document.getElementById("select-turno").value = "";
-                    document.getElementById("input-alunos").value = "";
-                    document.getElementById("data-inicio").value = "";
-                    document.getElementById("data-fim").value = "";
-                    document.getElementById("telefone-contato").value = "";
-                }
+                tr.appendChild(tdSala);
+                tr.appendChild(tdStatus);
+                tr.appendChild(tdCurso);
+                tr.appendChild(tdAcoes);
+                tbody.appendChild(tr);
             });
         }
     </script>
