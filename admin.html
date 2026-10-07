@@ -52,7 +52,10 @@
                     </div>
                     <button type="button" class="btn-action" style="background: var(--primary-color);" onclick="cadastrarSalaNuvem()">Adicionar Sala</button>
                 </div>
-                <ul id="lista-salas-ul" class="list-group" style="margin-top: 15px;"></ul>
+
+                <!-- LISTA DE SALAS E STATUS DE OCUPAÇÃO CADASTRADAS -->
+                <h4 style="margin-top: 25px; color: var(--primary-color);">Salas Cadastradas e Status Atual</h4>
+                <ul id="lista-salas-ul" class="list-group" style="margin-top: 10px;"></ul>
             </div>
 
             <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
@@ -114,7 +117,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT DE CONEXÃO FIREBASE (Sua Configuração Exata) -->
+    <!-- SCRIPT DE CONEXÃO FIREBASE E GERENCIAMENTO -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
@@ -127,33 +130,54 @@
             measurementId: "G-4KG8K3ZQK0"
         };
 
-        // Inicializa o Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         function iniciarPainel() {
-            // Sincroniza dados em tempo real da nuvem
+            // Sincroniza salas e ocupações em tempo real da nuvem
             db.ref('/').on('value', (snapshot) => {
                 const dados = snapshot.val() || {};
                 const salas = dados.salas || {};
-                atualizarInterfaceAdmin(salas);
+                const ocupacoes = dados.ocupacoes || {};
+                atualizarInterfaceAdmin(salas, ocupacoes);
             });
         }
 
-        function atualizarInterfaceAdmin(salasObj) {
+        function atualizarInterfaceAdmin(salasObj, ocupacoesObj) {
             const selectSala = document.getElementById("select-sala");
             const listaSalasUl = document.getElementById("lista-salas-ul");
             
             if (selectSala) selectSala.innerHTML = `<option value="">-- Selecione a Sala --</option>`;
             if (listaSalasUl) listaSalasUl.innerHTML = "";
 
-            Object.keys(salasObj).forEach(id => {
+            const idsSalas = Object.keys(salasObj);
+
+            if (idsSalas.length === 0) {
+                if (listaSalasUl) listaSalasUl.innerHTML = `<li style="color:#666;">Nenhuma sala cadastrada no momento.</li>`;
+                return;
+            }
+
+            idsSalas.forEach(id => {
                 const s = salasObj[id];
+                const ocupacao = ocupacoesObj[id];
+                const isOcupada = ocupacao && ocupacao.curso;
+
+                // Preenche o select de seleção
                 if (selectSala) {
                     selectSala.innerHTML += `<option value="${id}">${s.nome} (${s.bloco})</option>`;
                 }
+
+                // Preenche a lista visual com detalhes da sala e status de ocupação
                 if (listaSalasUl) {
-                    listaSalasUl.innerHTML += `<li><strong>${s.nome}</strong> (${s.bloco}) - X:${s.x}%, Y:${s.y}% <button type="button" onclick="removerSalaNuvem('${id}')" style="background:var(--danger-color); color:white; border:none; padding:3px 8px; border-radius:3px; cursor:pointer; float:right;">Excluir</button></li>`;
+                    listaSalasUl.innerHTML += `
+                        <li style="padding: 10px; margin-bottom: 8px; border-left: 4px solid ${isOcupada ? '#dc3545' : '#28a745'}; background: #f8f9fa;">
+                            <strong>${s.nome}</strong> (${s.bloco}) - Pos(%): X:${s.x}, Y:${s.y}<br>
+                            <span style="font-size: 13px; color: #555;">
+                                Status: <strong>${isOcupada ? 'Ocupada (' + ocupacao.curso + ' - ' + ocupacao.turno + ')' : 'Disponível'}</strong>
+                            </span>
+                            <button type="button" onclick="removerSalaNuvem('${id}')" style="background:var(--danger-color); color:white; border:none; padding:3px 8px; border-radius:3px; cursor:pointer; float:right;">Excluir Sala</button>
+                        </li>
+                    `;
                 }
             });
         }
@@ -184,7 +208,7 @@
         }
 
         function removerSalaNuvem(id) {
-            if (!confirm("Deseja realmente excluir esta sala?")) return;
+            if (!confirm("Deseja realmente excluir esta sala e seus dados de ocupação?")) return;
             db.ref('salas/' + id).remove();
             db.ref('ocupacoes/' + id).remove();
             alert("Sala removida com sucesso!");
@@ -199,7 +223,11 @@
             const fim = document.getElementById("data-fim").value;
             const telefone = document.getElementById("telefone-contato").value.trim();
 
-            if (!salaId || !curso || !turno || !alunos || !inicio || !fim || !telefone) {
+            if (!salaId) {
+                alert("Por favor, selecione uma sala.");
+                return;
+            }
+            if (!curso || !turno || !alunos || !inicio || !fim || !telefone) {
                 alert("Preencha todos os campos da ocupação.");
                 return;
             }
