@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo - Sincronizado</title>
+    <title>Painel Administrativo - Nuvem</title>
     <link rel="stylesheet" href="style.css">
     
     <!-- Firebase SDKs -->
@@ -16,7 +16,7 @@
         <header>
             <div class="logo-container">
                 <img src="sua-logo.png" alt="Logo" onerror="this.style.display='none'">
-                <h1>Painel do Administrador (Sincronizado na Nuvem)</h1>
+                <h1>Painel do Administrador (Sincronizado)</h1>
             </div>
             <nav>
                 <a href="index.html" style="background: #6c757d;">Ver Mapa Público</a>
@@ -28,7 +28,7 @@
             <!-- SECAO DE CADASTRO DE SALAS -->
             <div style="margin-bottom: 30px;">
                 <h3>Cadastro de Salas</h3>
-                <p>Cadastre novas salas informando o nome, bloco e a posição percentual (X e Y de 0 a 100) na planta baixa:</p>
+                <p>Cadastre novas salas informando o nome, bloco e a posição percentual (X e Y de 0 a 100):</p>
                 <div>
                     <div class="form-grid">
                         <div>
@@ -53,11 +53,33 @@
                     <button type="button" class="btn-action" style="background: var(--primary-color);" onclick="cadastrarSalaNuvem()">Adicionar Sala</button>
                 </div>
 
-                <!-- LISTA DE SALAS -->
                 <h4 style="margin-top: 25px; color: var(--primary-color);">Salas Cadastradas e Status Atual</h4>
                 <ul id="lista-salas-ul" class="list-group" style="margin-top: 10px;">
-                    <li style="padding: 10px; color: #666;">Conectando à nuvem...</li>
+                    <li style="padding: 10px; color: #666;">Carregando dados da nuvem...</li>
                 </ul>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
+
+            <!-- SECAO DE PRÉ-CADASTRO DE CURSOS E INSTITUIÇÕES -->
+            <div style="margin-bottom: 30px;" class="form-grid">
+                <div>
+                    <h3>Pré-cadastro de Cursos</h3>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <input type="text" id="novo-curso-input" placeholder="Ex: Curso de Operações Táticas">
+                        <button type="button" class="btn-action" style="margin-top: 0; width: auto; white-space: nowrap;" onclick="cadastrarCursoNuvem()">Adicionar Curso</button>
+                    </div>
+                    <ul id="lista-cursos-ul" class="list-group" style="margin-top: 10px; max-height: 150px; overflow-y: auto;"></ul>
+                </div>
+
+                <div>
+                    <h3>Cadastrar Instituição Promotora</h3>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <input type="text" id=" nova-instituicao-input" placeholder="Ex: CBMAP / IESP">
+                        <button type="button" class="btn-action" style="margin-top: 0; width: auto; white-space: nowrap;" onclick="cadastrarInstituicaoNuvem()">Adicionar Instituição</button>
+                    </div>
+                    <ul id="lista-instituicoes-ul" class="list-group" style="margin-top: 10px; max-height: 150px; overflow-y: auto;"></ul>
+                </div>
             </div>
 
             <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
@@ -74,12 +96,31 @@
                             </select>
                         </div>
                         <div>
-                            <label>Nome do Curso:</label>
-                            <input type="text" id="input-curso-nome" placeholder="Ex: GLOCK">
+                            <label>Instituição Promotora (Opcional):</label>
+                            <select id="select-instituicao-cadastrada" onchange="preencherInstituicao()">
+                                <option value="">-- Selecionar instituição pré-cadastrada --</option>
+                            </select>
                         </div>
                     </div>
 
                     <div class="form-grid">
+                        <div>
+                            <label>Nome da Instituição Promotora:</label>
+                            <input type="text" id="input-instituicao-nome" placeholder="Digite ou selecione acima">
+                        </div>
+                        <div>
+                            <label>Curso Prévio (Opcional):</label>
+                            <select id="select-curso-cadastrado" onchange="preencherCurso()">
+                                <option value="">-- Selecionar curso pré-cadastrado --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div>
+                            <label>Nome do Curso Realizado:</label>
+                            <input type="text" id="input-curso-nome" placeholder="Digite ou selecione acima">
+                        </div>
                         <div>
                             <label>Turno de Utilização:</label>
                             <select id="select-turno">
@@ -92,9 +133,16 @@
                                 <option value="Integral">Integral</option>
                             </select>
                         </div>
+                    </div>
+
+                    <div class="form-grid">
                         <div>
                             <label>Número de Alunos:</label>
                             <input type="number" id="input-alunos" placeholder="Ex: 44" min="1">
+                        </div>
+                        <div>
+                            <label>Telefone para Contato:</label>
+                            <input type="text" id="telefone-contato" placeholder="(96) 99109-0909">
                         </div>
                     </div>
 
@@ -109,11 +157,6 @@
                         </div>
                     </div>
 
-                    <div style="margin-bottom: 15px;">
-                        <label>Telefone para Contato:</label>
-                        <input type="text" id="telefone-contato" placeholder="(96) 99109-0909">
-                    </div>
-
                     <button type="button" class="btn-action" onclick="salvarOcupacaoNuvem()">Salvar Ocupação na Nuvem</button>
                 </div>
             </div>
@@ -121,7 +164,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT COM CONFIGURAÇÃO COMPLETA -->
+    <!-- SCRIPT DE GERENCIAMENTO FIREBASE -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
@@ -138,43 +181,28 @@
         const db = firebase.database();
 
         function iniciarPainel() {
-            console.log("Conectando ao Realtime Database...");
-            
             db.ref('/').on('value', (snapshot) => {
-                const dados = snapshot.val();
-                console.log("Dados da nuvem carregados com sucesso:", dados);
-
-                let salas = dados ? dados.salas : null;
-                
-                // Se o banco estiver vazio, cria as salas padrão iniciais
-                if (!salas) {
-                    console.log("Banco vazio. Inicializando salas padrão...");
-                    const defaultSalas = {
-                        "s1": { nome: "Sala 101", bloco: "Bloco A", x: 20, y: 30 },
-                        "s2": { nome: "Sala 102", bloco: "Bloco A", x: 40, y: 30 },
-                        "s3": { nome: "Lab Info", bloco: "Bloco B", x: 70, y: 60 },
-                        "s4": { nome: "Auditório", bloco: "Bloco C", x: 30, y: 80 }
-                    };
-                    db.ref('salas').set(defaultSalas);
-                    return;
-                }
-
+                const dados = snapshot.val() || {};
+                const salas = dados.salas || {};
                 const ocupacoes = dados.ocupacoes || {};
-                atualizarInterfaceAdmin(salas, ocupacoes);
-            }, (error) => {
-                console.error("Erro no Firebase:", error);
-                alert("Erro ao conectar no banco de dados. Verifique o console.");
+                const cursos = dados.cursos || {};
+                const instituicoes = dados.instituicoes || {};
+                
+                atualizarInterfaceAdmin(salas, ocupacoes, cursos, instituicoes);
             });
         }
 
-        function atualizarInterfaceAdmin(salasObj, ocupacoesObj) {
+        function atualizarInterfaceAdmin(salasObj, ocupacoesObj, cursosObj, instObj) {
+            // Select de Salas
             const selectSala = document.getElementById("select-sala");
             const listaSalasUl = document.getElementById("lista-salas-ul");
-            
             if (selectSala) selectSala.innerHTML = `<option value="">-- Selecione a Sala --</option>`;
             if (listaSalasUl) listaSalasUl.innerHTML = "";
 
             const idsSalas = Object.keys(salasObj);
+            if (idsSalas.length === 0 && listaSalasUl) {
+                listaSalasUl.innerHTML = `<li style="padding: 10px; color: #666;">Nenhuma sala cadastrada.</li>`;
+            }
 
             idsSalas.forEach(id => {
                 const s = salasObj[id];
@@ -190,13 +218,51 @@
                         <li style="padding: 10px; margin-bottom: 8px; border-left: 4px solid ${isOcupada ? '#dc3545' : '#28a745'}; background: #f8f9fa;">
                             <strong>${s.nome}</strong> (${s.bloco}) - Pos(%): X:${s.x}, Y:${s.y}<br>
                             <span style="font-size: 13px; color: #555;">
-                                Status: <strong>${isOcupada ? 'Ocupada (' + ocupacao.curso + ' - ' + ocupacao.turno + ')' : 'Disponível'}</strong>
+                                Status: <strong>${isOcupada ? 'Ocupada (' + ocupacao.curso + ' | Inst: ' + (ocupacao.instituicao || 'Não informada') + ')' : 'Disponível'}</strong>
                             </span>
                             <button type="button" onclick="removerSalaNuvem('${id}')" style="background:var(--danger-color); color:white; border:none; padding:3px 8px; border-radius:3px; cursor:pointer; float:right;">Excluir Sala</button>
                         </li>
                     `;
                 }
             });
+
+            // Select e Lista de Cursos
+            const selectCurso = document.getElementById("select-curso-cadastrado");
+            const listaCursosUl = document.getElementById("lista-cursos-ul");
+            if (selectCurso) selectCurso.innerHTML = `<option value="">-- Selecionar curso pré-cadastrado --</option>`;
+            if (listaCursosUl) listaCursosUl.innerHTML = "";
+
+            Object.keys(cursosObj).forEach(cKey => {
+                const nomeCurso = cursosObj[cKey];
+                if (selectCurso) selectCurso.innerHTML += `<option value="${nomeCurso}">${nomeCurso}</option>`;
+                if (listaCursosUl) {
+                    listaCursosUl.innerHTML += `<li style="padding:5px; background:#fff; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">${nomeCurso} <button type="button" onclick="removerCursoNuvem('${cKey}')" style="background:var(--danger-color); color:white; border:none; padding:2px 6px; border-radius:3px; cursor:pointer;">Excluir</button></li>`;
+                }
+            });
+
+            // Select e Lista de Instituições
+            const selectInst = document.getElementById("select-instituicao-cadastrada");
+            const listaInstUl = document.getElementById("lista-instituicoes-ul");
+            if (selectInst) selectInst.innerHTML = `<option value="">-- Selecionar instituição pré-cadastrada --</option>`;
+            if (listaInstUl) listaInstUl.innerHTML = "";
+
+            Object.keys(instObj).forEach(iKey => {
+                const nomeInst = instObj[iKey];
+                if (selectInst) selectInst.innerHTML += `<option value="${nomeInst}">${nomeInst}</option>`;
+                if (listaInstUl) {
+                    listaInstUl.innerHTML += `<li style="padding:5px; background:#fff; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">${nomeInst} <button type="button" onclick="removerInstituicaoNuvem('${iKey}')" style="background:var(--danger-color); color:white; border:none; padding:2px 6px; border-radius:3px; cursor:pointer;">Excluir</button></li>`;
+                }
+            });
+        }
+
+        function preencherCurso() {
+            const sel = document.getElementById("select-curso-cadastrado").value;
+            if (sel) document.getElementById("input-curso-nome").value = sel;
+        }
+
+        function preencherInstituicao() {
+            const sel = document.getElementById("select-instituicao-cadastrada").value;
+            if (sel) document.getElementById("input-instituicao-nome").value = sel;
         }
 
         function cadastrarSalaNuvem() {
@@ -210,12 +276,9 @@
                 return;
             }
 
-            const novaSalaRef = db.ref('salas').push();
-            novaSalaRef.set({ nome, bloco, x, y }, (error) => {
-                if (error) {
-                    alert("Erro ao salvar sala.");
-                } else {
-                    alert("Sala cadastrada e sincronizada com sucesso!");
+            db.ref('salas').push({ nome, bloco, x, y }, (err) => {
+                if (!err) {
+                    alert("Sala cadastrada!");
                     document.getElementById("nova-sala-nome").value = "";
                     document.getElementById("nova-sala-bloco").value = "";
                     document.getElementById("nova-sala-x").value = "";
@@ -225,14 +288,38 @@
         }
 
         function removerSalaNuvem(id) {
-            if (!confirm("Deseja realmente excluir esta sala?")) return;
+            if (!confirm("Excluir esta sala?")) return;
             db.ref('salas/' + id).remove();
             db.ref('ocupacoes/' + id).remove();
-            alert("Sala removida com sucesso!");
+        }
+
+        function cadastrarCursoNuvem() {
+            const val = document.getElementById("novo-curso-input").value.trim();
+            if (!val) return;
+            db.ref('cursos').push(val, (err) => {
+                if (!err) document.getElementById("novo-curso-input").value = "";
+            });
+        }
+
+        function removerCursoNuvem(key) {
+            db.ref('cursos/' + key).remove();
+        }
+
+        function cadastrarInstituicaoNuvem() {
+            const val = document.getElementById(" nova-instituicao-input").value.trim();
+            if (!val) return;
+            db.ref('instituicoes').push(val, (err) => {
+                if (!err) document.getElementById(" nova-instituicao-input").value = "";
+            });
+        }
+
+        function removerInstituicaoNuvem(key) {
+            db.ref('instituicoes/' + key).remove();
         }
 
         function salvarOcupacaoNuvem() {
             const salaId = document.getElementById("select-sala").value;
+            const instituicao = document.getElementById("input-instituicao-nome").value.trim();
             const curso = document.getElementById("input-curso-nome").value.trim();
             const turno = document.getElementById("select-turno").value;
             const alunos = document.getElementById("input-alunos").value.trim();
@@ -240,22 +327,17 @@
             const fim = document.getElementById("data-fim").value;
             const telefone = document.getElementById("telefone-contato").value.trim();
 
-            if (!salaId) {
-                alert("Por favor, selecione uma sala.");
-                return;
-            }
-            if (!curso || !turno || !alunos || !inicio || !fim || !telefone) {
-                alert("Preencha todos os campos da ocupação.");
+            if (!salaId || !curso || !turno || !alunos || !inicio || !fim || !telefone) {
+                alert("Preencha todos os campos obrigatórios da ocupação.");
                 return;
             }
 
             db.ref('ocupacoes/' + salaId).set({
-                curso, turno, alunos, inicio, fim, telefone
+                instituicao, curso, turno, alunos, inicio, fim, telefone
             }, (error) => {
-                if (error) {
-                    alert("Erro ao salvar ocupação.");
-                } else {
-                    alert("Ocupação salva na nuvem! Visível instantaneamente em qualquer navegador.");
+                if (!error) {
+                    alert("Ocupação salva na nuvem com sucesso!");
+                    document.getElementById("input-instituicao-nome").value = "";
                     document.getElementById("input-curso-nome").value = "";
                     document.getElementById("select-turno").value = "";
                     document.getElementById("input-alunos").value = "";
