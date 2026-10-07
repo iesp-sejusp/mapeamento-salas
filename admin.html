@@ -387,7 +387,7 @@
             if (digitada === SENHA_ADMIN) {
                 document.getElementById("login-overlay").style.display = "none";
                 document.getElementById("painel-conteudo").style.display = "block";
-                carregarPainelAdmin(); // <-- Garante a chamada imediata ao carregar os dados
+                carregarPainelAdmin();
             } else {
                 document.getElementById("erro-senha").style.display = "block";
             }
@@ -501,9 +501,29 @@
             }
         };
 
+        // Alocação com verificação estrita de conflito de datas na mesma sala
         function alocarCurso(e) {
             e.preventDefault();
             var salaId = document.getElementById("select-sala-alocacao").value;
+            var novoInicio = document.getElementById("oc-inicio").value;
+            var novoFim = document.getElementById("oc-fim").value;
+
+            var ocupacoesAtuais = dadosGlobais.ocupacoes || {};
+            var ocupacaoAtualSala = ocupacoesAtuais[salaId];
+
+            // Trava de segurança: Se a sala já estiver ocupada no mapa, verifica conflito de datas
+            if (ocupacaoAtualSala && ocupacaoAtualSala.inicio && ocupacaoAtualSala.fim) {
+                var inicioExistente = ocupacaoAtualSala.inicio;
+                var fimExistente = ocupacaoAtualSala.fim;
+
+                // Verifica se há sobreposição de períodos (Início do novo <= Fim do existente E Fim do novo >= Início do existente)
+                var haConflito = (novoInicio <= fimExistente) && (novoFim >= inicioExistente);
+
+                if (haConflito) {
+                    alert("⚠️ ATENÇÃO: Esta sala já está ocupada neste período pelo curso de '" + ocupacaoAtualSala.curso + "' (" + formatarData(inicioExistente) + " até " + formatarData(fimExistente) + "). Libere a sala ou escolha outro período/sala.");
+                    return; // Interrompe a alocação
+                }
+            }
             
             var salasObj = dadosGlobais.salas || {};
             var nomeSala = salasObj[salaId] ? `Sala ${salasObj[salaId].nome} (Bloco ${salasObj[salaId].bloco})` : "Sala";
@@ -515,8 +535,8 @@
                 instituicao: document.getElementById("select-inst-alocacao").value,
                 turno: document.getElementById("oc-turno").value,
                 alunos: Number(document.getElementById("oc-alunos").value),
-                inicio: document.getElementById("oc-inicio").value,
-                fim: document.getElementById("oc-fim").value,
+                inicio: novoInicio,
+                fim: novoFim,
                 telefone: document.getElementById("oc-telefone").value
             };
 
@@ -559,20 +579,4 @@
 
             var selCurso = document.getElementById("select-curso-alocacao");
             var divCursosGerenciar = document.getElementById("lista-cursos-gerenciar");
-            selCurso.innerHTML = "<option value=''>Selecione um curso...</option>";
-            divCursosGerenciar.innerHTML = "";
-            Object.keys(cursosObj).forEach(id => {
-                var c = cursosObj[id];
-                selCurso.innerHTML += `<option value="${c}">${c}</option>`;
-                divCursosGerenciar.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; background:#fff; padding:5px 8px; margin-bottom:5px; border-radius:4px; border:1px solid #ddd; font-size:13px;">
-                    <span>${c}</span>
-                    <div>
-                        <button class="btn-editar" onclick="editarCurso('${id}', '${c}')" style="padding:2px 6px; font-size:11px;">✏️ Editar</button>
-                        <button class="btn-liberar" onclick="excluirCurso('${id}')" style="padding:2px 6px; font-size:11px;">🗑️</button>
-                    </div>
-                </div>`;
-            });
-
-            var selInst = document.getElementById("select-inst-alocacao");
-            var divInstGerenciar = document.getElementById("lista-inst-gerenciar");
-            selInst.innerHTML = "<option value='
+            selCurso.innerHTML = "<option value=''>Se
