@@ -1,64 +1,335 @@
-✅ SUCESSO TOTAL!
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Salas de Aula - Tempo Real</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        body {
+            position: relative;
+            min-height: 100vh;
+            background: #f4f6f9;
+            font-family: Arial, sans-serif;
+        }
+        .wrapper {
+            position: relative;
+            z-index: 10;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background: #ffffff !important;
+            padding: 30px !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
+            margin-top: 20px !important;
+            margin-bottom: 40px !important;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #003366;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        h1 { color: #003366; font-size: 22px; margin: 0; }
+        nav a {
+            background: #003366;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        nav a:hover { background: #002244; }
+        
+        #status-conexao {
+            font-weight: bold;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            text-align: center;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        /* Contêiner da Planta Baixa */
+        #mapa-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+            background: #e9ecef;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #ced4da;
+        }
+        #mapa-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: contain;
+        }
 
-Dados recebidos da nuvem:
-{
-  "cursos": {
-    "-P3IxQfVnd5uiiR2eUBh": "glock",
-    "-P3J-D3Yp6zZLQW4Eab_": "APH",
-    "-P3JB_C_r61FOJ8IIoiF": "CURSO DE PILOTO DE AERONAVES REMOTAMENTE PILOTADAS"
-  },
-  "instituicoes": {
-    "-P3IxS5hsH_iPOo0S8wq": "Cbmap",
-    "-P3J-Et-N4TLkkEykGmw": "PM",
-    "-P3JBaa7kYhrvpkUjXob": "SEJUSP"
-  },
-  "ocupacoes": {
-    "-P3IwKvHH_E2eCs7010m": {
-      "alunos": "44",
-      "curso": "Glock",
-      "fim": "2026-10-09",
-      "inicio": "2026-10-07",
-      "instituicao": "Cbmap",
-      "telefone": "96 991040404",
-      "turno": "Manhã"
-    },
-    "-P3J-AVFij6o3tmvBTBG": {
-      "alunos": "40",
-      "curso": "APH",
-      "fim": "2026-10-23",
-      "inicio": "2026-10-21",
-      "instituicao": "PM",
-      "telefone": "96991111111",
-      "turno": "Integral"
-    },
-    "-P3JBS8LKmVhuj5OHA1G": {
-      "alunos": "30",
-      "curso": "CURSO DE PILOTO DE AERONAVES REMOTAMENTE PILOTADAS",
-      "fim": "2026-10-31",
-      "inicio": "2026-10-28",
-      "instituicao": "SEJUSP",
-      "telefone": "96991111111",
-      "turno": "Manhã e Tarde"
-    }
-  },
-  "salas": {
-    "-P3IwKvHH_E2eCs7010m": {
-      "bloco": "B",
-      "nome": "B5",
-      "x": 50,
-      "y": 50
-    },
-    "-P3J-AVFij6o3tmvBTBG": {
-      "bloco": "C",
-      "nome": "C1",
-      "x": 60,
-      "y": 80
-    },
-    "-P3JBS8LKmVhuj5OHA1G": {
-      "bloco": "E",
-      "nome": "E1",
-      "x": 100,
-      "y": 50
-    }
-  }
-}
+        /* Marcadores interativos sobre a imagem */
+        .sala-marcador {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            padding: 6px 12px;
+            border-radius: 20px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+            z-index: 20;
+            white-space: nowrap;
+            transition: transform 0.2s;
+        }
+        .sala-marcador:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+        .sala-marcador.livre { background: #28a745; border: 2px solid #fff; }
+        .sala-marcador.ocupada { background: #dc3545; border: 2px solid #fff; }
+        
+        /* Tooltip de detalhes ao passar o mouse */
+        .tooltip-info {
+            display: none;
+            position: absolute;
+            bottom: 135%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #212529;
+            color: #fff;
+            padding: 12px;
+            border-radius: 6px;
+            width: 230px;
+            font-size: 11px;
+            line-height: 1.5;
+            z-index: 30;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            text-align: left;
+            pointer-events: none;
+        }
+        .sala-marcador:hover .tooltip-info { display: block; }
+
+        /* Legenda */
+        .legenda-planta {
+            display: flex;
+            gap: 25px;
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 14px;
+            align-items: center;
+            justify-content: center;
+        }
+        .legenda-item { display: flex; align-items: center; gap: 8px; }
+        .bola-status { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+        .bola-status.livre { background: #28a745; }
+        .bola-status.ocupada { background: #dc3545; }
+
+        /* Cards Mobile */
+        .sala-card-mobile {
+            background: #f8f9fa !important;
+            border: 1px solid #d1d9e0 !important;
+            padding: 15px !important;
+            margin-bottom: 12px !important;
+            border-radius: 6px !important;
+        }
+    </style>
+
+    <!-- Firebase SDKs Compat -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body onload="iniciarMapaOficial()">
+
+    <div class="wrapper">
+        <header>
+            <div class="logo-container">
+                <h1>Mapeamento de Salas de Aula (Sincronizado)</h1>
+            </div>
+            <nav>
+                <a href="admin.html">Área Administrativa</a>
+            </nav>
+        </header>
+
+        <div class="container">
+            <h2>Planta Baixa e Localização das Salas</h2>
+            <p>Consulte abaixo o status em tempo real, turnos e ocupações das salas sincronizadas na nuvem do IESP/CBMAP.</p>
+
+            <div id="status-conexao">🔄 Sincronizando com a nuvem...</div>
+
+            <!-- Visualização Gráfica sobre a Planta Baixa -->
+            <div id="mapa-desktop-view">
+                <div id="mapa-container"></div>
+                <div class="legenda-planta">
+                    <div class="legenda-item"><span class="bola-status livre"></span> Disponível (Livre)</div>
+                    <div class="legenda-item"><span class="bola-status ocupada"></span> Ocupada</div>
+                </div>
+            </div>
+
+            <!-- Visualização em Lista / Cards (Ideal para dispositivos móveis) -->
+            <div id="lista-mobile-view" style="margin-top: 35px;">
+                <h3 style="margin-top: 0; font-size: 18px; color: #003366;">Status Detalhado das Salas</h3>
+                <div id="lista-mobile-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT DE SINCRONIZAÇÃO E RENDERIZAÇÃO -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
+            authDomain: "salas-iesp.firebaseapp.com",
+            databaseURL: "https://salas-iesp-default-rtdb.firebaseio.com",
+            projectId: "salas-iesp",
+            storageBucket: "salas-iesp.firebasestorage.app",
+            messagingSenderId: "456076383863",
+            appId: "1:456076383863:web:8edb172ae98c3be71f1872",
+            measurementId: "G-4KG8K3ZQK0"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        function iniciarMapaOficial() {
+            db.ref('/').on('value', (snapshot) => {
+                const dados = snapshot.val() || {};
+                const salas = dados.salas || {};
+                const ocupacoes = dados.ocupacoes || {};
+
+                document.getElementById("status-conexao").innerHTML = "✅ Conectado com sucesso à nuvem! Dados sincronizados em tempo real.";
+                
+                renderizarMapa(salas, ocupacoes);
+            }, (error) => {
+                const statusDiv = document.getElementById("status-conexao");
+                statusDiv.style.background = "#f8d7da";
+                statusDiv.style.color = "#721c24";
+                statusDiv.innerHTML = "❌ Erro ao conectar: " + error.message;
+            });
+        }
+
+        function renderizarMapa(salasObj, ocupacoesObj) {
+            const containerDesktop = document.getElementById("mapa-container");
+            const containerMobile = document.getElementById("lista-mobile-container");
+            
+            const idsSalas = Object.keys(salasObj);
+
+            // 1. Renderização Gráfica sobre a Planta Baixa
+            if (containerDesktop) {
+                containerDesktop.innerHTML = "";
+
+                if (idsSalas.length === 0) {
+                    containerDesktop.innerHTML = `<p style="padding: 40px; color:#666;">Nenhuma sala cadastrada no sistema.</p>`;
+                } else {
+                    const img = document.createElement("img");
+                    img.src = "planta-baixa.jpg";
+                    img.alt = "Planta Baixa do Prédio";
+                    
+                    img.onerror = function() {
+                        containerDesktop.innerHTML = `
+                            <div style="padding: 20px; background: #fff3f3; color: #d9534f; border: 1px solid #f5c6cb; text-align: center; border-radius: 6px;">
+                                ⚠️ Aviso: A imagem <strong>planta-baixa.jpg</strong> não foi encontrada na mesma pasta do projeto. Os cards abaixo continuam atualizados.
+                            </div>
+                        `;
+                    };
+
+                    containerDesktop.appendChild(img);
+
+                    idsSalas.forEach(id => {
+                        const sala = salasObj[id];
+                        
+                        // Busca ocupação correspondente
+                        let ocupacaoEncontrada = null;
+                        Object.keys(ocupacoesObj).forEach(ocKey => {
+                            const oc = ocupacoesObj[ocKey];
+                            if (ocKey === id || oc.salaId === id || oc.sala === sala.nome) {
+                                ocupacaoEncontrada = oc;
+                            }
+                        });
+
+                        const isOcupada = ocupacaoEncontrada && ocupacaoEncontrada.curso;
+
+                        const marcador = document.createElement("div");
+                        marcador.className = `sala-marcador ${isOcupada ? 'ocupada' : 'livre'}`;
+                        marcador.style.left = `${sala.x !== undefined ? sala.x : 50}%`;
+                        marcador.style.top = `${sala.y !== undefined ? sala.y : 50}%`;
+
+                        marcador.innerHTML = `
+                            📍 ${sala.nome} (${isOcupada ? 'Ocupada' : 'Livre'})
+                            <div class="tooltip-info">
+                                <strong style="font-size: 12px; color: #ffc107;">Sala ${sala.nome} (Bloco ${sala.bloco})</strong><br>
+                                <strong>Status:</strong> ${isOcupada ? '<span style="color:#ff6b6b; font-weight:bold;">Ocupada</span>' : '<span style="color:#51cf66; font-weight:bold;">Disponível</span>'}<br>
+                                ${isOcupada ? `
+                                    <strong>Curso:</strong> ${ocupacaoEncontrada.curso}<br>
+                                    <strong>Instituição:</strong> ${ocupacaoEncontrada.instituicao || 'N/A'}<br>
+                                    <strong>Turno:</strong> ${ocupacaoEncontrada.turno || 'N/A'}<br>
+                                    <strong>Alunos:</strong> ${ocupacaoEncontrada.alunos || 'N/A'}<br>
+                                    <strong>Período:</strong> ${formatarData(ocupacaoEncontrada.inicio)} a${formatarData(ocupacaoEncontrada.fim)}<br>
+                                    <strong>Contato:</strong> ${ocupacaoEncontrada.telefone || 'N/A'}
+                                ` : 'Sala livre para agendamento de cursos.'}
+                            </div>
+                        `;
+                        containerDesktop.appendChild(marcador);
+                    });
+                }
+            }
+
+            // 2. Renderização em Lista / Cards (Mobile e Visão Geral)
+            if (containerMobile) {
+                containerMobile.innerHTML = "";
+                if (idsSalas.length === 0) {
+                    containerMobile.innerHTML = `<p style="color:#666;">Nenhuma sala cadastrada.</p>`;
+                } else {
+                    idsSalas.forEach(id => {
+                        const sala = salasObj[id];
+                        
+                        let ocupacaoEncontrada = null;
+                        Object.keys(ocupacoesObj).forEach(ocKey => {
+                            const oc = ocupacoesObj[ocKey];
+                            if (ocKey === id || oc.salaId === id || oc.sala === sala.nome) {
+                                ocupacaoEncontrada = oc;
+                            }
+                        });
+
+                        const isOcupada = ocupacaoEncontrada && ocupacaoEncontrada.curso;
+
+                        const card = document.createElement("div");
+                        card.className = "sala-card-mobile";
+                        card.style.borderLeft = `6px solid ${isOcupada ? '#dc3545' : '#28a745'}`;
+                        
+                        card.innerHTML = `
+                            <h4 style="margin: 0 0 6px 0; color: #003366; font-size: 16px;">🏫 Sala ${sala.nome} (Bloco ${sala.bloco})</h4>
+                            <p style="margin: 4px 0;"><strong>Status:</strong> ${isOcupada ? '<span style="color:#dc3545; font-weight:bold;'>🔴 Ocupada</span>' : '<span style="color:#28a745; font-weight:bold;'>🟢 Disponível (Livre)</span>'}</p>
+                            ${isOcupada ? `
+                                <p style="margin: 4px 0;"><strong>Curso:</strong> ${ocupacaoEncontrada.curso}</p>
+                                <p style="margin: 4px 0;"><strong>Instituição:</strong> ${ocupacaoEncontrada.instituicao || 'Não informada'}</p>
+                                <p style="margin: 4px 0;"><strong>Turno:</strong> ${ocupacaoEncontrada.turno \vert{}\vert{} 'N/A'} \vert{} <strong>Alunos:</strong>${ocupacaoEncontrada.alunos || 'N/A'}</p>
+                                <p style="margin: 4px 0; color: #0056b3;"><strong>Período:</strong> ${formatarData(ocupacaoEncontrada.inicio)} até ${formatarData(ocupacaoEncontrada.fim)}</p>
+                                <p style="margin: 4px 0;"><strong>Contato:</strong> ${ocupacaoEncontrada.telefone || 'N/A'}</p>
+                            ` : `<p style="margin: 4px 0; color: #666; font-style: italic;">Sala livre para agendamento de novos treinamentos.</p>`}
+                        `;
+                        containerMobile.appendChild(card);
+                    });
+                }
+            }
+        }
+
+        function formatarData(dataIso) {
+            if (!dataIso) return "";
+            const partes = dataIso.split("-");
+            if (partes.length < 3) return dataIso;
+            return `${partes[2]}/${partes[1]}/${partes[0]}`;
+        }
+    </script>
+</body>
+</html>
