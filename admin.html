@@ -200,7 +200,7 @@
 </head>
 <body>
 
-    <!-- TELA DE LOGIN ADMINISTRATIVO -->
+    <!-- TELA DE LOGIN ADMINISTRATIVO (Sem chamadas inline propensas a cache) -->
     <div id="login-overlay" class="no-print">
         <div class="login-box">
             <img src="sua-logo.png" alt="Logo IESP" class="login-logo" onerror="this.style.display='none'">
@@ -393,7 +393,6 @@
             }
         }
 
-        // Associa o evento via JS para garantir funcionamento imediato sem erro de referência HTML
         document.addEventListener("DOMContentLoaded", function() {
             const btnEntrar = document.getElementById("btn-entrar");
             const inputSenha = document.getElementById("senha-admin");
