@@ -6,6 +6,40 @@
     <title>Mapa de Salas de Aula - Tempo Real</title>
     <link rel="stylesheet" href="style.css">
     
+    <!-- CSS de Correção de Camada (Z-Index e Fundo Sólido para evitar que sumam sob o fundo) -->
+    <style>
+        body {
+            position: relative;
+            min-height: 100vh;
+        }
+        .wrapper {
+            position: relative;
+            z-index: 10;
+        }
+        .container {
+            background: #ffffff !important;
+            padding: 25px !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+            margin-top: 20px !important;
+            margin-bottom: 40px !important;
+        }
+        #status-conexao {
+            font-weight: bold;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .sala-card-mobile {
+            background: #f8f9fa !important;
+            border: 1px solid #d1d9e0 !important;
+            padding: 15px !important;
+            margin-bottom: 12px !important;
+            border-radius: 6px !important;
+        }
+    </style>
+
     <!-- Firebase SDKs Compat -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -27,8 +61,8 @@
             <h2>Planta Baixa e Localização das Salas</h2>
             <p>Consulte abaixo o status em tempo real, turnos e ocupações das salas sincronizadas na nuvem.</p>
 
-            <!-- Área de Status de Diagnóstico -->
-            <div id="status-conexao" style="padding: 10px; margin-bottom: 15px; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; border-radius: 4px; font-size: 13px;">
+            <!-- Área de Status de Diagnóstico Visual -->
+            <div id="status-conexao" style="background: #fff3cd; color: #856404; border: 1px solid #ffeeba;">
                 🔄 Conectando ao banco de dados na nuvem...
             </div>
 
@@ -45,7 +79,7 @@
             <div id="lista-mobile-view" style="margin-top: 30px;">
                 <h3 style="margin-top: 0; font-size: 18px; color: var(--primary-color);">Status Geral das Salas</h3>
                 <div id="lista-mobile-container">
-                    <p style="color: #666;">Aguardando dados...</p>
+                    <p style="color: #666;">Carregando dados das salas...</p>
                 </div>
             </div>
         </div>
@@ -72,7 +106,6 @@
             }
             const db = firebase.database();
 
-            // Executa a leitura ao carregar a página
             db.ref('/').on('value', (snapshot) => {
                 const dados = snapshot.val() || {};
                 const salas = dados.salas || {};
@@ -119,7 +152,7 @@
                     img.style.width = "100%";
                     img.style.maxHeight = "500px";
                     img.style.objectFit = "contain";
-                    img.onerror = () => { img.style.display = "none"; }; // Oculta se não achar a imagem, mas mantém os marcadores
+                    img.onerror = () => { img.style.display = "none"; };
                     imgContainer.appendChild(img);
 
                     idsSalas.forEach(id => {
@@ -140,17 +173,17 @@
                         marcador.style.fontSize = "12px";
                         marcador.style.background = isOcupada ? "#dc3545" : "#28a745";
                         marcador.style.cursor = "pointer";
+                        marcador.style.zIndex = "20";
 
                         marcador.innerHTML = `
                             ${sala.nome}
-                            <div class="tooltip-info" style="display:none; position:absolute; bottom:125%; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:8px; border-radius:4px; width:180px; font-size:11px; z-index:10;">
+                            <div class="tooltip-info" style="display:none; position:absolute; bottom:125%; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:8px; border-radius:4px; width:180px; font-size:11px; z-index:30;">
                                 <strong>${sala.nome} (${sala.bloco})</strong><br>
                                 Status: ${isOcupada ? 'Ocupada' : 'Disponível'}<br>
                                 ${isOcupada ? `Curso: ${ocupacao.curso}<br>Alunos:${ocupacao.alunos || 'N/A'}` : ''}
                             </div>
                         `;
 
-                        // Mostra tooltip ao passar o mouse ou clicar
                         marcador.onmouseenter = () => marcador.querySelector('.tooltip-info').style.display = 'block';
                         marcador.onmouseleave = () => marcador.querySelector('.tooltip-info').style.display = 'none';
 
@@ -172,7 +205,8 @@
                         const isOcupada = ocupacao && ocupacao.curso;
 
                         const card = document.createElement("div");
-                        card.style.cssText = `background: #fff; border: 1px solid #ddd; padding: 12px; margin-bottom: 10px; border-radius: 6px; border-left: 5px solid ${isOcupada ? '#dc3545' : '#28a745'};`;
+                        card.className = "sala-card-mobile";
+                        card.style.borderLeft = `5px solid ${isOcupada ? '#dc3545' : '#28a745'}`;
                         
                         card.innerHTML = `
                             <h4 style="margin: 0 0 5px 0; color: #333;">${sala.nome} (${sala.bloco})</h4>
