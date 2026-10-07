@@ -61,10 +61,10 @@
 
             <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
 
-            <!-- SECAO DE OCUPAÇÕES ATIVAS (NOVO) -->
+            <!-- SECAO DE OCUPAÇÕES ATIVAS (COM DATAS DETALHADAS) -->
             <div style="margin-bottom: 30px;">
                 <h3>Salas Ocupadas e Cursos em Andamento</h3>
-                <p>Visão geral de todas as salas que estão atualmente ocupadas com os respectivos cursos:</p>
+                <p>Visão geral de todas as salas ocupadas com os respectivos cursos e prazos vigentes:</p>
                 <div id="relatorio-ocupacoes-container" style="margin-top: 15px;">
                     <p style="color: #666;">Carregando ocupações...</p>
                 </div>
@@ -214,7 +214,6 @@
         }
 
         function atualizarInterfaceAdmin(salasObj, ocupacoesObj, cursosObj, instObj) {
-            // Select e Lista de Salas
             const selectSala = document.getElementById("select-sala");
             const listaSalasUl = document.getElementById("lista-salas-ul");
             const relatorioContainer = document.getElementById("relatorio-ocupacoes-container");
@@ -259,7 +258,8 @@
                             <p style="margin: 3px 0;"><strong>Curso Realizado:</strong> ${ocupacao.curso}</p>
                             <p style="margin: 3px 0;"><strong>Instituição Promotora:</strong> ${ocupacao.instituicao || 'Não informada'}</p>
                             <p style="margin: 3px 0;"><strong>Turno:</strong> ${ocupacao.turno || 'N/A'} | <strong>Alunos:</strong> ${ocupacao.alunos || 'N/A'}</p>
-                            <p style="margin: 3px 0;"><strong>Período:</strong> ${formatarData(ocupacao.inicio)} até ${formatarData(ocupacao.fim)} | <strong>Contato:</strong> ${ocupacao.telefone}</p>
+                            <p style="margin: 3px 0; color: #0056b3;"><strong>📅 Data de Início:</strong> ${formatarData(ocupacao.inicio)} | <strong>Data de Término:</strong> ${formatarData(ocupacao.fim)}</p>
+                            <p style="margin: 3px 0;"><strong>Contato:</strong> ${ocupacao.telefone}</p>
                             <button type="button" onclick="liberarSalaNuvem('${id}')" style="background: #ffc107; color: #000; border: none; padding: 4px 10px; border-radius: 3px; cursor: pointer; margin-top: 8px; font-weight: bold;">🔓 Liberar Sala</button>
                         </div>
                     `;
@@ -274,7 +274,7 @@
                 }
             }
 
-            // Select e Lista de Cursos
+            // Cursos
             const selectCurso = document.getElementById("select-curso-cadastrado");
             const listaCursosUl = document.getElementById("lista-cursos-ul");
             if (selectCurso) selectCurso.innerHTML = `<option value="">-- Selecionar curso pré-cadastrado --</option>`;
@@ -288,7 +288,7 @@
                 }
             });
 
-            // Select e Lista de Instituições
+            // Instituições
             const selectInst = document.getElementById("select-instituicao-cadastrada");
             const listaInstUl = document.getElementById("lista-instituicoes-ul");
             if (selectInst) selectInst.innerHTML = `<option value="">-- Selecionar instituição pré-cadastrada --</option>`;
@@ -304,7 +304,7 @@
         }
 
         function formatarData(dataIso) {
-            if (!dataIso) return "";
+            if (!dataIso) return "Não informada";
             const partes = dataIso.split("-");
             if (partes.length < 3) return dataIso;
             return `${partes[2]}/${partes[1]}/${partes[0]}`;
