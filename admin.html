@@ -6,32 +6,34 @@
     <title>Painel Administrativo - Nuvem</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- Regras avançadas de impressão para evitar páginas em branco -->
+    <!-- Regras de Impressão Definitivas (Página Única Limpa) -->
     <style>
         @media print {
-            /* Oculta absolutamente tudo na página */
             body * {
-                visibility: hidden;
+                visibility: hidden !important;
             }
-            /* Torna visível apenas a área do resultado do relatório mensal */
             #resultado-relatorio-mensal, #resultado-relatorio-mensal * {
-                visibility: visible;
+                visibility: visible !important;
             }
-            /* Posiciona o relatório perfeitamente no topo da folha impressa */
             #resultado-relatorio-mensal {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                background: white !important;
-                border: none !important;
-                padding: 0 !important;
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
                 margin: 0 !important;
+                padding: 0 !important;
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
             }
-            /* Remove cabeçalhos de data/URL automáticos do navegador e define folha limpa */
+            html, body {
+                height: auto !important;
+                overflow: visible !important;
+                background: white !important;
+            }
             @page {
-                size: auto;
-                margin: 15mm;
+                size: portrait;
+                margin: 10mm;
             }
         }
     </style>
