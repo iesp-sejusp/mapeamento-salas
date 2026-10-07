@@ -6,19 +6,19 @@
     <title>Painel Administrativo - Nuvem</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- Regras para imprimir apenas o relatório mensal -->
+    <!-- Regras avançadas de impressão para evitar páginas em branco -->
     <style>
         @media print {
-            /* Oculta tudo na página por padrão */
+            /* Oculta absolutamente tudo na página */
             body * {
                 visibility: hidden;
             }
-            /* Torna visível apenas a caixa do relatório mensal e seu conteúdo */
-            #secao-relatorio-mensal, #secao-relatorio-mensal * {
+            /* Torna visível apenas a área do resultado do relatório mensal */
+            #resultado-relatorio-mensal, #resultado-relatorio-mensal * {
                 visibility: visible;
             }
-            /* Posiciona o relatório no topo da folha impressa */
-            #secao-relatorio-mensal {
+            /* Posiciona o relatório perfeitamente no topo da folha impressa */
+            #resultado-relatorio-mensal {
                 position: absolute;
                 left: 0;
                 top: 0;
@@ -26,10 +26,12 @@
                 background: white !important;
                 border: none !important;
                 padding: 0 !important;
+                margin: 0 !important;
             }
-            /* Esconde o botão de imprimir na folha final */
-            .btn-imprimir {
-                display: none !important;
+            /* Remove cabeçalhos de data/URL automáticos do navegador e define folha limpa */
+            @page {
+                size: auto;
+                margin: 15mm;
             }
         }
     </style>
@@ -495,7 +497,7 @@
         }
 
         function cadastrarCursoNuvem() {
-            val = document.getElementById("novo-curso-input").value.trim();
+            const val = document.getElementById("novo-curso-input").value.trim();
             if (!val) { alert("Digite o nome do curso."); return; }
             db.ref('cursos').push(val, (err) => {
                 if (!err) document.getElementById("novo-curso-input").value = "";
