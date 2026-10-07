@@ -39,11 +39,11 @@
         }
     </style>
 
-    <!-- Firebase SDKs Compat v9.23.0 -->
+    <!-- Firebase App (core) e Realtime Database SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
-<body>
+<body onload="carregarSistema()">
 
     <div class="wrapper">
         <header>
@@ -84,82 +84,54 @@
         </div>
     </div>
 
-    <!-- SCRIPT BLINDADO COM FALLBACK DE SEGURANÇA -->
+    <!-- SCRIPT DE CONEXÃO DIRETA -->
     <script>
-        const statusDiv = document.getElementById("status-conexao");
-
-        // Dados padrão de segurança caso a nuvem demore ou o banco não esteja criado
-        const dadosFallback = {
-            salas: {
-                "s1": { nome: "Sala B5", bloco: "B", x: 30, y: 40 },
-                "s2": { nome: "Sala C1", bloco: "C", x: 50, y: 60 },
-                "s3": { nome: "Sala E1", bloco: "E", x: 70, y: 30 }
-            },
-            ocupacoes: {
-                "s1": { curso: "Glock", instituicao: "Cbmap", turno: "Manhã", alunos: 44, inicio: "2026-10-07", fim: "2026-10-09", telefone: "(96) 99109-0909" },
-                "s2": { curso: "APH", instituicao: "PM", turno: "Tarde", alunos: 40, inicio: "2026-10-21", fim: "2026-10-23", telefone: "(96) 99109-0909" }
-            }
+        const firebaseConfig = {
+            apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
+            authDomain: "salas-iesp.firebaseapp.com",
+            databaseURL: "https://salas-iesp-default-rtdb.firebaseio.com",
+            projectId: "salas-iesp",
+            storageBucket: "salas-iesp.firebasestorage.app",
+            messagingSenderId: "456076383863",
+            appId: "1:456076383863:web:8edb172ae98c3be71f1872",
+            measurementId: "G-4KG8K3ZQK0"
         };
 
-        let dadosCarregados = false;
+        // Inicialização padrão segura
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-        // Se em 3 segundos o Firebase não responder, ativa o modo de exibição local para garantir que o mapa apareça
-        let fallbackTimer = setTimeout(() => {
-            if (!dadosCarregados) {
-                statusDiv.style.background = "#fff3cd";
-                statusDiv.style.color = "#856404";
-                statusDiv.style.borderColor = "#ffeeba";
-                statusDiv.innerHTML = "⚠️ Banco de dados na nuvem não respondeu. Exibindo interface local de demonstração.";
-                renderizarTudo(dadosFallback.salas, dadosFallback.ocupacoes);
-            }
-        }, 3000);
-
-        try {
-            const firebaseConfig = {
-                apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
-                authDomain: "salas-iesp.firebaseapp.com",
-                databaseURL: "https://salas-iesp-default-rtdb.firebaseio.com",
-                projectId: "salas-iesp",
-                storageBucket: "salas-iesp.firebasestorage.app",
-                messagingSenderId: "456076383863",
-                appId: "1:456076383863:web:8edb172ae98c3be71f1872",
-                measurementId: "G-4KG8K3ZQK0"
-            };
-
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            const db = firebase.database();
+        function carregarSistema() {
+            const statusDiv = document.getElementById("status-conexao");
 
             db.ref('/').on('value', (snapshot) => {
-                clearTimeout(fallbackTimer);
-                dadosCarregados = true;
-                const dados = snapshot.val() || dadosFallback;
-                const salas = dados.salas || dadosFallback.salas;
-                const ocupacoes = dados.ocupacoes || dadosFallback.ocupacoes;
+                const dados = snapshot.val();
                 
+                if (!dados) {
+                    statusDiv.style.background = "#fff3cd";
+                    statusDiv.style.color = "#856404";
+                    statusDiv.style.borderColor = "#ffeeba";
+                    statusDiv.innerHTML = "⚠️ Banco conectado, mas está vazio. Cadastre uma sala pelo painel administrativo.";
+                    renderizarTudo({}, {});
+                    return;
+                }
+
                 statusDiv.style.background = "#d4edda";
                 statusDiv.style.color = "#155724";
                 statusDiv.style.borderColor = "#c3e6cb";
-                statusDiv.innerHTML = "✅ Conectado com sucesso à nuvem! Dados sincronizados.";
+                statusDiv.innerHTML = "✅ Conectado com sucesso à nuvem! Dados sincronizados em tempo real.";
 
+                const salas = dados.salas || {};
+                const ocupacoes = dados.ocupacoes || {};
+                
                 renderizarTudo(salas, ocupacoes);
+
             }, (error) => {
-                clearTimeout(fallbackTimer);
                 statusDiv.style.background = "#f8d7da";
                 statusDiv.style.color = "#721c24";
                 statusDiv.style.borderColor = "#f5c6cb";
-                statusDiv.innerHTML = "❌ Erro ao conectar ao Firebase: " + error.message + ". Exibindo dados locais.";
-                renderizarTudo(dadosFallback.salas, dadosFallback.ocupacoes);
+                statusDiv.innerHTML = "❌ Erro de permissão ou conexão: " + error.message;
             });
-
-        } catch (e) {
-            clearTimeout(fallbackTimer);
-            statusDiv.style.background = "#f8d7da";
-            statusDiv.style.color = "#721c24";
-            statusDiv.style.borderColor = "#f5c6cb";
-            statusDiv.innerHTML = "❌ Erro crítico: " + e.message;
-            renderizarTudo(dadosFallback.salas, dadosFallback.ocupacoes);
         }
 
         function renderizarTudo(salasObj, ocupacoesObj) {
@@ -167,11 +139,11 @@
             const containerMobile = document.getElementById("lista-mobile-container");
             const idsSalas = Object.keys(salasObj);
 
-            // 1. Render Desktop
+            // 1. Render Desktop (Mapa / Planta Baixa)
             if (containerDesktop) {
                 containerDesktop.innerHTML = "";
                 if (idsSalas.length === 0) {
-                    containerDesktop.innerHTML = `<p style="text-align:center; padding: 20px; color:#666;">Nenhuma sala cadastrada no banco.</p>`;
+                    containerDesktop.innerHTML = `<p style="text-align:center; padding: 20px; color:#666;">Nenhuma sala cadastrada no sistema.</p>`;
                 } else {
                     const imgContainer = document.createElement("div");
                     imgContainer.style.position = "relative";
