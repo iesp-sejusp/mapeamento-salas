@@ -119,39 +119,6 @@
 
             <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
 
-            <!-- SECAO DE OCUPAÇÕES ATIVAS -->
-            <div style="margin-bottom: 30px;">
-                <h3>Salas Ocupadas e Cursos em Andamento</h3>
-                <p>Visão geral de todas as salas ocupadas no momento:</p>
-                <div id="relatorio-ocupacoes-container" style="margin-top: 15px;">
-                    <p style="color: #666;">Carregando ocupações...</p>
-                </div>
-            </div>
-
-            <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
-
-            <!-- SECAO DE RELATÓRIO MENSAL CRONOLÓGICO -->
-            <div style="margin-bottom: 30px; background: #eef2f7; padding: 20px; border-radius: 8px; border: 1px solid #d1d9e0;">
-                <h3>📊 Relatório de Ocupação por Mês (Ordem Cronológica)</h3>
-                <p>Relatório Mensal do Uso de Salas:</p>
-                
-                <div style="display: flex; gap: 15px; align-items: flex-end; margin-bottom: 15px;">
-                    <div style="flex: 1;">
-                        <label>Selecione o Mês e Ano:</label>
-                        <input type="month" id="filtro-mes-ano" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" onchange="gerarRelatorioMensal()">
-                    </div>
-                    <div>
-                        <button type="button" class="btn-action" style="margin-top: 0; background: #28a745;" onclick="window.print()">🖨️ Imprimir Relatório</button>
-                    </div>
-                </div>
-
-                <div id="resultado-relatorio-mensal" style="background: #fff; padding: 15px; border-radius: 6px; border: 1px solid #ddd;">
-                    <p style="color: #666; margin: 0;">Selecione um mês acima para exibir o relatório correspondente.</p>
-                </div>
-            </div>
-
-            <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
-
             <!-- SECAO DE PRÉ-CADASTRO DE CURSOS E INSTITUIÇÕES -->
             <div style="margin-bottom: 30px;" class="form-grid">
                 <div>
@@ -176,7 +143,7 @@
             <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
 
             <!-- SECAO DE ATRIBUICAO DE OCUPACAO -->
-            <div>
+            <div style="margin-bottom: 30px;">
                 <h3>Atribuir Ocupação à Sala</h3>
                 <div>
                     <div class="form-grid">
@@ -249,6 +216,39 @@
                     </div>
 
                     <button type="button" class="btn-action" onclick="salvarOcupacaoNuvem()">Salvar Ocupação na Nuvem</button>
+                </div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
+
+            <!-- SECAO DE OCUPAÇÕES ATIVAS (PENÚLTIMA) -->
+            <div style="margin-bottom: 30px;">
+                <h3>Salas Ocupadas e Cursos em Andamento</h3>
+                <p>Visão geral de todas as salas ocupadas no momento:</p>
+                <div id="relatorio-ocupacoes-container" style="margin-top: 15px;">
+                    <p style="color: #666;">Carregando ocupações...</p>
+                </div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
+
+            <!-- SECAO DE RELATÓRIO MENSAL CRONOLÓGICO (ÚLTIMA) -->
+            <div style="margin-bottom: 30px; background: #eef2f7; padding: 20px; border-radius: 8px; border: 1px solid #d1d9e0;">
+                <h3>📊 Relatório de Ocupação por Mês (Ordem Cronológica)</h3>
+                <p>Relatório Mensal do Uso de Salas:</p>
+                
+                <div style="display: flex; gap: 15px; align-items: flex-end; margin-bottom: 15px;">
+                    <div style="flex: 1;">
+                        <label>Selecione o Mês e Ano:</label>
+                        <input type="month" id="filtro-mes-ano" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" onchange="gerarRelatorioMensal()">
+                    </div>
+                    <div>
+                        <button type="button" class="btn-action" style="margin-top: 0; background: #28a745;" onclick="window.print()">🖨️ Imprimir Relatório</button>
+                    </div>
+                </div>
+
+                <div id="resultado-relatorio-mensal" style="background: #fff; padding: 15px; border-radius: 6px; border: 1px solid #ddd;">
+                    <p style="color: #666; margin: 0;">Selecione um mês acima para exibir o relatório correspondente.</p>
                 </div>
             </div>
 
