@@ -312,7 +312,7 @@
                         <input type="text" id="oc-telefone" placeholder="Ex: 96 99999-9999">
                     </div>
                 </div>
-                <button type="submit" class="btn-acao">🔒 Ocupar Sala</button>
+                <button type="submit" class="btn-acao">🔒 Ocupar Sala e Salvar no Histórico</button>
             </form>
         </div>
 
@@ -351,6 +351,7 @@
             <table>
                 <thead>
                     <tr>
+                        <th>Sala Utilizada</th>
                         <th>Curso</th>
                         <th>Instituição</th>
                         <th>Período</th>
@@ -359,14 +360,13 @@
                     </tr>
                 </thead>
                 <tbody id="tabela-relatorio">
-                    <tr><td colspan="5" style="text-align:center;">Nenhum período selecionado.</td></tr>
+                    <tr><td colspan="6" style="text-align:center;">Nenhum período selecionado.</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 
     <script>
-        // Ambas as variações da função mapeadas globalmente para eliminar erros de cache
         const SENHA_ADMIN = "sargento2026";
 
         function validarSenha() {
@@ -380,7 +380,6 @@
             }
         }
         window.validarSenha = validarSenha;
-        window.validarSenhaAdmin = validarSenha;
 
         const firebaseConfig = {
             apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
@@ -441,10 +440,18 @@
             });
         }
 
+        // Aloca o curso na sala (tempo real) E grava no histórico permanente de relatórios
         function alocarCurso(e) {
             e.preventDefault();
             var salaId = document.getElementById("select-sala-alocacao").value;
+            
+            // Busca o nome da sala para exibir bonito no relatório histórico
+            var salasObj = dadosGlobais.salas || {};
+            var nomeSala = salasObj[salaId] ? `Sala ${salasObj[salaId].nome} (Bloco ${salasObj[salaId].bloco})` : "Sala";
+
             var dadosOcupacao = {
+                salaId: salaId,
+                salaNome: nomeSala,
                 curso: document.getElementById("select-curso-alocacao").value,
                 instituicao: document.getElementById("select-inst-alocacao").value,
                 turno: document.getElementById("oc-turno").value,
@@ -454,16 +461,25 @@
                 telefone: document.getElementById("oc-telefone").value
             };
 
-            db.ref('ocupacoes/' + salaId).set(dadosOcupacao).then(() => {
-                alert("Sala alocada com sucesso!");
+            // 1. Salva no mapa em tempo real (substitui o status da sala)
+            var p1 = db.ref('ocupacoes/' + salaId).set(dadosOcupacao);
+            
+            // 2. Salva no histórico permanente (utiliza push() para acumular mesmo se liberar e ocupar de novo)
+            var p2 = db.ref('historico_cursos').push(dadosOcupacao);
+
+            Promise.all([p1, p2]).then(() => {
+                alert("Sala alocada e registrada no relatório histórico com sucesso!");
                 document.getElementById("form-ocupacao").reset();
+            }).catch((error) => {
+                alert("Erro ao alocar: " + error.message);
             });
         }
 
+        // Libera a sala no mapa, mas MANTÉM intacto o registro no histórico de relatórios
         window.liberarSala = function(salaId) {
-            if (confirm("Deseja liberar esta sala?")) {
+            if (confirm("Deseja liberar esta sala no mapa? (O histórico mensal de relatórios será preservado)")) {
                 db.ref('ocupacoes/' + salaId).remove().then(() => {
-                    alert("Sala liberada!");
+                    alert("Sala liberada com sucesso!");
                 });
             }
         };
@@ -524,9 +540,10 @@
             gerarRelatorioMensal();
         }
 
+        // O relatório agora lê exclusivamente do banco histórico permanente
         function gerarRelatorioMensal() {
-            var mesAnoFiltro = document.getElementById("filtro-mes-ano").value;
-            var ocupacoesObj = dadosGlobais.ocupacoes || {};
+            var mesAnoFiltro = document.getElementById("filtro-mes-ano").value; // Ex: "2026-10"
+            var historicoObj = dadosGlobais.historico_cursos || {};
             var tbodyRel = document.getElementById("tabela-relatorio");
             var resumoCard = document.getElementById("relatorio-resumo");
 
@@ -540,21 +557,22 @@
             var totalCursosMes = 0;
             var htmlLinhas = "";
 
-            Object.keys(ocupacoesObj).forEach(id => {
-                var oc = ocupacoesObj[id];
-                if (oc && oc.inicio) {
-                    var mesAnoInicio = oc.inicio.substring(0, 7); 
+            Object.keys(historicoObj).forEach(id => {
+                var item = historicoObj[id];
+                if (item && item.inicio) {
+                    var mesAnoInicio = item.inicio.substring(0, 7); 
                     if (mesAnoInicio === mesAnoFiltro) {
                         totalCursosMes++;
-                        totalAlunosMes += Number(oc.alunos || 0);
+                        totalAlunosMes += Number(item.alunos || 0);
 
                         htmlLinhas += `
                             <tr>
-                                <td><strong>${oc.curso}</strong></td>
-                                <td>${oc.instituicao || 'N/A'}</td>
-                                <td>${formatarData(oc.inicio)} a ${formatarData(oc.fim)}</td>
-                                <td>${oc.turno || 'N/A'}</td>
-                                <td><strong>${oc.alunos || 0}</strong></td>
+                                <td><strong>${item.salaNome || 'Sala'}</strong></td>
+                                <td><strong>${item.curso}</strong></td>
+                                <td>${item.instituicao || 'N/A'}</td>
+                                <td>${formatarData(item.inicio)} a ${formatarData(item.fim)}</td>
+                                <td>${item.turno || 'N/A'}</td>
+                                <td><strong>${item.alunos || 0}</strong></td>
                             </tr>
                         `;
                     }
@@ -562,11 +580,11 @@
             });
 
             if (totalCursosMes === 0) {
-                tbodyRel.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Nenhum curso registrado neste mês.</td></tr>";
+                tbodyRel.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Nenhum curso registrado neste mês.</td></tr>";
                 resumoCard.innerHTML = `📅 Período: ${mesAnoFiltro} | Total de Cursos: 0 | Total de Alunos Atendidos: 0`;
             } else {
                 tbodyRel.innerHTML = htmlLinhas;
-                resumoCard.innerHTML = `📅 Relatório de ${mesAnoFiltro} | 📚 Total de Cursos Realizados: ${totalCursosMes} | 👥 Total Geral de Alunos Atendidos: ${totalAlunosMes}`;
+                resumoCard.innerHTML = `📅 Relatório de ${mesAnoFiltro} | 📚 Total de Alocações Realizadas: ${totalCursosMes} | 👥 Total Geral de Alunos Atendidos: ${totalAlunosMes}`;
             }
         }
 
