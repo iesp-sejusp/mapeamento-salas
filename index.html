@@ -3,102 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Status de Salas - Teste Direto</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Teste Direto - Firebase</title>
     
-    <style>
-        body {
-            background: #f4f6f9;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-        }
-        .wrapper {
-            max-width: 900px;
-            margin: 0 auto;
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #003366;
-            padding-bottom: 15px;
-            margin-bottom: 25px;
-        }
-        h1 {
-            color: #003366;
-            font-size: 22px;
-            margin: 0;
-        }
-        .btn-acao {
-            background: #003366;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            text-decoration: none;
-        }
-        #status-conexao {
-            padding: 12px;
-            margin-bottom: 20px;
-            border-radius: 6px;
-            text-align: center;
-            font-weight: bold;
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-        }
-        .card-sala {
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 15px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .card-sala.ocupada {
-            border-left: 6px solid #dc3545;
-        }
-        .card-sala.livre {
-            border-left: 6px solid #28a745;
-        }
-    </style>
-
     <!-- Firebase SDKs Compat -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
-<body onload="testarConexaoDireta()">
+<body style="font-family: Arial, sans-serif; padding: 30px; background: #f4f6f9;">
 
-    <div class="wrapper">
-        <header>
-            <h1>Painel de Status das Salas (Modo Direto)</h1>
-            <a href="admin.html" class="btn-acao">Área Administrativa</a>
-        </header>
+    <div style="max-width: 600px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+        <h2 style="color: #003366; margin-top: 0;">Painel de Diagnóstico do Firebase</h2>
+        <p>Clique no botão abaixo para forçar a busca direta de dados na nuvem:</p>
+        
+        <button onclick="buscarDadosAgora()" style="background: #28a745; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+            🚀 CLIQUE AQUI PARA TESTAR A CONEXÃO
+        </button>
 
-        <!-- Status do Banco -->
-        <div id="status-conexao">
-            🔄 Conectando ao Firebase...
-        </div>
-
-        <div style="text-align: right; margin-bottom: 20px;">
-            <button class="btn-acao" onclick="testarConexaoDireta()">🔄 Recarregar Dados</button>
-        </div>
-
-        <!-- Container onde os dados vão aparecer direto -->
-        <div id="resultado-dados">
-            <p style="color: #666; text-align: center;">Aguardando resposta da nuvem...</p>
+        <div id="resultado" style="margin-top: 20px; padding: 15px; background: #e9ecef; border-radius: 5px; font-family: monospace; white-space: pre-wrap;">
+            Aguardando clique...
         </div>
     </div>
 
-    <!-- SCRIPT DE TESTE SEM IMAGEM -->
     <script>
+        // Configuração oficial do seu projeto
         const firebaseConfig = {
             apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
             authDomain: "salas-iesp.firebaseapp.com",
@@ -110,77 +37,29 @@
             measurementId: "G-4KG8K3ZQK0"
         };
 
+        // Inicializa se já não estiver instanciado
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.database();
 
-        function testarConexaoDireta() {
-            const statusDiv = document.getElementById("status-conexao");
-            const container = document.getElementById("resultado-dados");
+        function buscarDadosAgora() {
+            const caixaResultado = document.getElementById("resultado");
+            caixaResultado.style.background = "#fff3cd";
+            caixaResultado.innerHTML = "🔄 Conectando com a API do Firebase...";
 
-            statusDiv.style.background = "#fff3cd";
-            statusDiv.style.color = "#856404";
-            statusDiv.style.borderColor = "#ffeeba";
-            statusDiv.innerHTML = "🔄 Consultando a raiz do banco de dados...";
-
-            db.ref('/').once('value').then((snapshot) => {
-                const dados = snapshot.val();
-                
-                if (!dados) {
-                    statusDiv.style.background = "#fff3cd";
-                    statusDiv.style.color = "#856404";
-                    statusDiv.style.borderColor = "#ffeeba";
-                    statusDiv.innerHTML = "⚠️ O banco de dados está conectado, mas vazio (sem nós cadastrados).";
-                    container.innerHTML = "<p style='text-align:center;'>Nenhum dado encontrado na nuvem.</p>";
-                    return;
-                }
-
-                statusDiv.style.background = "#d4edda";
-                statusDiv.style.color = "#155724";
-                statusDiv.style.borderColor = "#c3e6cb";
-                statusDiv.innerHTML = "✅ Conexão bem-sucedida! Dados obtidos da nuvem com sucesso.";
-
-                const salas = dados.salas || {};
-                const ocupacoes = dados.ocupacoes || {};
-                const idsSalas = Object.keys(salas);
-
-                if (idsSalas.length === 0) {
-                    container.innerHTML = "<p style='text-align:center;'>Nenhuma sala cadastrada no sistema.</p>";
-                    return;
-                }
-
-                let htmlCards = "";
-                idsSalas.forEach(id => {
-                    const sala = salas[id];
-                    const ocupacao = ocupacoes[id];
-                    const isOcupada = ocupacao && ocupacao.curso;
-
-                    htmlCards += `
-                        <div class="card-sala ${isOcupada ? 'ocupada' : 'livre'}">
-                            <h3 style="margin: 0 0 8px 0; color: #003366;">🏫 ${sala.nome} (${sala.bloco})</h3>
-                            <p style="margin: 4px 0;"><strong>Status:</strong> ${isOcupada ? '<span style="color:#dc3545; font-weight:bold;">Ocupada</span>' : '<span style="color:#28a745; font-weight:bold;">Disponível</span>'}</p>
-                            ${isOcupada ? `
-                                <p style="margin: 4px 0;"><strong>Curso Realizado:</strong> ${ocupacao.curso}</p>
-                                <p style="margin: 4px 0;"><strong>Instituição:</strong> ${ocupacao.instituicao || 'Não informada'}</p>
-                                <p style="margin: 4px 0;"><strong>Turno:</strong> ${ocupacao.turno \vert{}\vert{} 'N/A'} \vert{} <strong>Alunos:</strong>${ocupacao.alunos || 'N/A'}</p>
-                                <p style="margin: 4px 0; color: #0056b3;"><strong>Período:</strong> ${ocupacao.inicio \vert{}\vert{} ''} até ${ocupacao.fim || ''}</p>
-                                <p style="margin: 4px 0;"><strong>Contato:</strong> ${ocupacao.telefone || 'N/A'}</p>
-                            ` : `<p style="margin: 4px 0; color: #666; font-style: italic;">Sala livre para agendamento de cursos.</p>`}
-                        </div>
-                    `;
+            db.ref('/').once('value')
+                .then((snapshot) => {
+                    const dados = snapshot.val();
+                    caixaResultado.style.background = "#d4edda";
+                    caixaResultado.innerHTML = "✅ SUCESSO TOTAL!\n\nDados recebidos da nuvem:\n" + JSON.stringify(dados, null, 2);
+                })
+                .catch((erro) => {
+                    caixaResultado.style.background = "#f8d7da";
+                    caixaResultado.innerHTML = "❌ ERRO NA REQUISIÇÃO:\n" + erro.message;
                 });
-
-                container.innerHTML = htmlCards;
-
-            }).catch((error) => {
-                statusDiv.style.background = "#f8d7da";
-                statusDiv.style.color = "#721c24";
-                statusDiv.style.borderColor = "#f5c6cb";
-                statusDiv.innerHTML = "❌ Erro ao consultar o Firebase: " + error.message;
-                container.innerHTML = `<p style="color: red; text-align: center;">Falha na requisição: ${error.message}</p>`;
-            });
         }
     </script>
+
 </body>
 </html>
