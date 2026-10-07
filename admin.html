@@ -416,3 +416,275 @@
 
         function carregarPainelAdmin() {
             db.ref('/').on('value', function(snapshot) {
+                dadosGlobais = snapshot.val() || {};
+                renderizarPainelCompleto(dadosGlobais);
+            });
+
+            const hoje = new Date();
+            const ano = hoje.getFullYear();
+            const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+            document.getElementById("filtro-mes-ano").value = `${ano}-${mes}`;
+        }
+
+        function cadastrarSala(e) {
+            e.preventDefault();
+            db.ref('salas').push({
+                nome: document.getElementById("sala-nome").value,
+                bloco: document.getElementById("sala-bloco").value,
+                x: Number(document.getElementById("sala-x").value),
+                y: Number(document.getElementById("sala-y").value)
+            }).then(() => {
+                alert("Sala cadastrada com sucesso!");
+                document.getElementById("form-sala").reset();
+            });
+        }
+
+        window.salvarEdicaoSala = function(id) {
+            var nomeInput = document.getElementById("edit-nome-" + id).value;
+            var blocoInput = document.getElementById("edit-bloco-" + id).value;
+            var xInput = Number(document.getElementById("edit-x-" + id).value);
+            var yInput = Number(document.getElementById("edit-y-" + id).value);
+
+            db.ref('salas/' + id).update({
+                nome: nomeInput,
+                bloco: blocoInput,
+                x: xInput,
+                y: yInput
+            }).then(() => {
+                alert("Sala atualizada com sucesso! Verifique a nova posição no mapa.");
+            }).catch(err => {
+                alert("Erro ao atualizar sala: " + err.message);
+            });
+        };
+
+        function cadastrarCurso(e) {
+            e.preventDefault();
+            db.ref('cursos').push(document.getElementById("novo-curso").value).then(() => {
+                alert("Curso cadastrado!");
+                document.getElementById("form-curso").reset();
+            });
+        }
+
+        window.editarCurso = function(id, nomeAtual) {
+            var novoNome = prompt("Editar nome do curso:", nomeAtual);
+            if (novoNome && novoNome.trim() !== "") {
+                db.ref('cursos/' + id).set(novoNome.trim()).then(() => {
+                    alert("Curso atualizado!");
+                });
+            }
+        };
+
+        window.excluirCurso = function(id) {
+            if (confirm("Deseja remover este curso?")) {
+                db.ref('cursos/' + id).remove();
+            }
+        };
+
+        function cadastrarInstituicao(e) {
+            e.preventDefault();
+            db.ref('instituicoes').push(document.getElementById("nova-inst").value).then(() => {
+                alert("Instituição cadastrada!");
+                document.getElementById("form-inst").reset();
+            });
+        }
+
+        window.editarInstituicao = function(id, nomeAtual) {
+            var novoNome = prompt("Editar nome da instituição:", nomeAtual);
+            if (novoNome && novoNome.trim() !== "") {
+                db.ref('instituicoes/' + id).set(novoNome.trim()).then(() => {
+                    alert("Instituição atualizada!");
+                });
+            }
+        };
+
+        window.excluirInstituicao = function(id) {
+            if (confirm("Deseja remover esta instituição?")) {
+                db.ref('instituicoes/' + id).remove();
+            }
+        };
+
+        function alocarCurso(e) {
+            e.preventDefault();
+            var salaId = document.getElementById("select-sala-alocacao").value;
+            
+            var salasObj = dadosGlobais.salas || {};
+            var nomeSala = salasObj[salaId] ? `Sala ${salasObj[salaId].nome} (Bloco ${salasObj[salaId].bloco})` : "Sala";
+
+            var dadosOcupacao = {
+                salaId: salaId,
+                salaNome: nomeSala,
+                curso: document.getElementById("select-curso-alocacao").value,
+                instituicao: document.getElementById("select-inst-alocacao").value,
+                turno: document.getElementById("oc-turno").value,
+                alunos: Number(document.getElementById("oc-alunos").value),
+                inicio: document.getElementById("oc-inicio").value,
+                fim: document.getElementById("oc-fim").value,
+                telefone: document.getElementById("oc-telefone").value
+            };
+
+            var p1 = db.ref('ocupacoes/' + salaId).set(dadosOcupacao);
+            var p2 = db.ref('historico_cursos').push(dadosOcupacao);
+
+            Promise.all([p1, p2]).then(() => {
+                alert("Sala alocada e registrada no relatório histórico com sucesso!");
+                document.getElementById("form-ocupacao").reset();
+            }).catch((error) => {
+                alert("Erro ao alocar: " + error.message);
+            });
+        }
+
+        window.liberarSala = function(salaId) {
+            if (confirm("Deseja liberar esta sala no mapa? (O histórico mensal de relatórios será preservado)")) {
+                db.ref('ocupacoes/' + salaId).remove().then(() => {
+                    alert("Sala liberada com sucesso!");
+                });
+            }
+        };
+
+        function imprimirRelatorio() {
+            window.print();
+        }
+
+        function renderizarPainelCompleto(dados) {
+            var salasObj = dados.salas || {};
+            var cursosObj = dados.cursos || {};
+            var instObj = dados.instituicoes || {};
+            var ocupacoesObj = dados.ocupacoes || {};
+
+            var selSala = document.getElementById("select-sala-alocacao");
+            selSala.innerHTML = "<option value=''>Selecione uma sala...</option>";
+            Object.keys(salasObj).forEach(id => {
+                var s = salasObj[id];
+                var ocupada = ocupacoesObj[id] && ocupacoesObj[id].curso;
+                selSala.innerHTML += `<option value="${id}">Sala ${s.nome} (Bloco ${s.bloco}) ${ocupada ? '[OCUPADA]' : '[LIVRE]'}</option>`;
+            });
+
+            var selCurso = document.getElementById("select-curso-alocacao");
+            var divCursosGerenciar = document.getElementById("lista-cursos-gerenciar");
+            selCurso.innerHTML = "<option value=''>Selecione um curso...</option>";
+            divCursosGerenciar.innerHTML = "";
+            Object.keys(cursosObj).forEach(id => {
+                var c = cursosObj[id];
+                selCurso.innerHTML += `<option value="${c}">${c}</option>`;
+                divCursosGerenciar.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; background:#fff; padding:5px 8px; margin-bottom:5px; border-radius:4px; border:1px solid #ddd; font-size:13px;">
+                    <span>${c}</span>
+                    <div>
+                        <button class="btn-editar" onclick="editarCurso('${id}', '${c}')" style="padding:2px 6px; font-size:11px;">✏️ Editar</button>
+                        <button class="btn-liberar" onclick="excluirCurso('${id}')" style="padding:2px 6px; font-size:11px;">🗑️</button>
+                    </div>
+                </div>`;
+            });
+
+            var selInst = document.getElementById("select-inst-alocacao");
+            var divInstGerenciar = document.getElementById("lista-inst-gerenciar");
+            selInst.innerHTML = "<option value=''>Selecione uma instituição...</option>";
+            divInstGerenciar.innerHTML = "";
+            Object.keys(instObj).forEach(id => {
+                var i = instObj[id];
+                selInst.innerHTML += `<option value="${i}">${i}</option>`;
+                divInstGerenciar.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; background:#fff; padding:5px 8px; margin-bottom:5px; border-radius:4px; border:1px solid #ddd; font-size:13px;">
+                    <span>${i}</span>
+                    <div>
+                        <button class="btn-editar" onclick="editarInstituicao('${id}', '${i}')" style="padding:2px 6px; font-size:11px;">✏️ Editar</button>
+                        <button class="btn-liberar" onclick="excluirInstituicao('${id}')" style="padding:2px 6px; font-size:11px;">🗑️</button>
+                    </div>
+                </div>`;
+            });
+
+            var tbody = document.getElementById("tabela-gerenciamento");
+            tbody.innerHTML = "";
+            var idsSalas = Object.keys(salasObj);
+
+            if (idsSalas.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Nenhuma sala cadastrada.</td></tr>";
+            } else {
+                idsSalas.forEach(id => {
+                    var sala = salasObj[id];
+                    var oc = ocupacoesObj[id] || {};
+                    var isOcupada = oc && oc.curso;
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>
+                                <div style="display:flex; gap: 5px; margin-bottom:5px;">
+                                    <input type="text" id="edit-nome-${id}" value="${sala.nome}" style="width: 70px; padding:4px;" placeholder="Nome">
+                                    <input type="text" id="edit-bloco-${id}" value="${sala.bloco}" style="width: 70px; padding:4px;" placeholder="Bloco">
+                                </div>
+                            </td>
+                            <td>
+                                <div style="display:flex; gap: 5px; align-items:center;">
+                                    <label style="margin:0; font-size:11px;">X:</label>
+                                    <input type="number" id="edit-x-${id}" value="${sala.x !== undefined ? sala.x : 50}" style="width: 60px; padding:4px;">
+                                    <label style="margin:0; font-size:11px;">Y:</label>
+                                    <input type="number" id="edit-y-${id}" value="${sala.y !== undefined ? sala.y : 50}" style="width: 60px; padding:4px;">
+                                    <button class="btn-editar" onclick="salvarEdicaoSala('${id}')">💾 Salvar</button>
+                                </div>
+                            </td>
+                            <td>${isOcupada ? `<span style='color:#dc3545; font-weight:bold;'>🔴 Ocupada</span><br><small>${oc.curso} (${oc.instituicao})</small>` : "<span style='color:#28a745; font-weight:bold;'>🟢 Disponível</span>"}</td>
+                            <td>
+                                ${isOcupada ? `<button class="btn-liberar" onclick="liberarSala('${id}')">🔓 Liberar</button>` : "<span style='color:#666; font-size:12px;'>Livre</span>"}
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            gerarRelatorioMensal();
+        }
+
+        function gerarRelatorioMensal() {
+            var mesAnoFiltro = document.getElementById("filtro-mes-ano").value;
+            var historicoObj = dadosGlobais.historico_cursos || {};
+            var tbodyRel = document.getElementById("tabela-relatorio");
+            var resumoCard = document.getElementById("relatorio-resumo");
+
+            tbodyRel.innerHTML = "";
+            if (!mesAnoFiltro) {
+                resumoCard.innerHTML = "Selecione um mês válido.";
+                return;
+            }
+
+            var totalAlunosMes = 0;
+            var totalCursosMes = 0;
+            var htmlLinhas = "";
+
+            Object.keys(historicoObj).forEach(id => {
+                var item = historicoObj[id];
+                if (item && item.inicio) {
+                    var mesAnoInicio = item.inicio.substring(0, 7); 
+                    if (mesAnoInicio === mesAnoFiltro) {
+                        totalCursosMes++;
+                        totalAlunosMes += Number(item.alunos || 0);
+
+                        htmlLinhas += `
+                            <tr>
+                                <td><strong>${item.salaNome || 'Sala'}</strong></td>
+                                <td><strong>${item.curso}</strong></td>
+                                <td>${item.instituicao || 'N/A'}</td>
+                                <td>${formatarData(item.inicio)} a ${formatarData(item.fim)}</td>
+                                <td>${item.turno || 'N/A'}</td>
+                                <td><strong>${item.alunos || 0}</strong></td>
+                            </tr>
+                        `;
+                    }
+                }
+            });
+
+            if (totalCursosMes === 0) {
+                tbodyRel.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Nenhum curso registrado neste mês.</td></tr>";
+                resumoCard.innerHTML = `📅 Período: ${mesAnoFiltro} | Total de Ocupações: 0 | Total de Alunos Atendidos: 0`;
+            } else {
+                tbodyRel.innerHTML = htmlLinhas;
+                resumoCard.innerHTML = `📅 Relatório de ${mesAnoFiltro} | 📚 Total de Ocupações Realizadas: ${totalCursosMes} | 👥 Total Geral de Alunos Atendidos: ${totalAlunosMes}`;
+            }
+        }
+
+        function formatarData(dataIso) {
+            if (!dataIso) return "";
+            var p = dataIso.split("-");
+            if (p.length < 3) return dataIso;
+            return `${p[2]}/${p[1]}/${p[0]}`;
+        }
+    </script>
+</body>
+</html>
