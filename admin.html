@@ -6,7 +6,7 @@
     <title>Painel Administrativo - Banco Único</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- Firebase SDKs (Compatibilidade Direta no Navegador) -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
@@ -53,9 +53,11 @@
                     <button type="button" class="btn-action" style="background: var(--primary-color);" onclick="cadastrarSalaNuvem()">Adicionar Sala</button>
                 </div>
 
-                <!-- LISTA DE SALAS E STATUS DE OCUPAÇÃO CADASTRADAS -->
+                <!-- LISTA DE SALAS -->
                 <h4 style="margin-top: 25px; color: var(--primary-color);">Salas Cadastradas e Status Atual</h4>
-                <ul id="lista-salas-ul" class="list-group" style="margin-top: 10px;"></ul>
+                <ul id="lista-salas-ul" class="list-group" style="margin-top: 10px;">
+                    <li style="padding: 10px; color: #666;">Carregando dados da nuvem...</li>
+                </ul>
             </div>
 
             <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
@@ -67,7 +69,9 @@
                     <div class="form-grid">
                         <div>
                             <label>Selecione a Sala:</label>
-                            <select id="select-sala"></select>
+                            <select id="select-sala">
+                                <option value="">Carregando salas...</option>
+                            </select>
                         </div>
                         <div>
                             <label>Nome do Curso:</label>
@@ -117,7 +121,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT DE CONEXÃO FIREBASE E GERENCIAMENTO -->
+    <!-- SCRIPT COM DIAGNÓSTICO DE CONEXÃO -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
@@ -134,12 +138,32 @@
         const db = firebase.database();
 
         function iniciarPainel() {
-            // Sincroniza salas e ocupações em tempo real da nuvem
+            console.log("Iniciando conexão com o Firebase...");
+            
             db.ref('/').on('value', (snapshot) => {
-                const dados = snapshot.val() || {};
-                const salas = dados.salas || {};
+                const dados = snapshot.val();
+                console.log("Dados recebidos da nuvem:", dados);
+
+                let salas = dados ? dados.salas : null;
+                
+                // Se a nuvem estiver completamente vazia, insere salas padrão iniciais
+                if (!salas) {
+                    console.log("Banco vazio detectado. Criando salas padrão na nuvem...");
+                    const defaultSalas = {
+                        "s1": { nome: "Sala 101", bloco: "Bloco A", x: 20, y: 30 },
+                        "s2": { nome: "Sala 102", bloco: "Bloco A", x: 40, y: 30 },
+                        "s3": { nome: "Lab Info", bloco: "Bloco B", x: 70, y: 60 },
+                        "s4": { nome: "Auditório", bloco: "Bloco C", x: 30, y: 80 }
+                    };
+                    db.ref('salas').set(defaultSalas);
+                    return;
+                }
+
                 const ocupacoes = dados.ocupacoes || {};
                 atualizarInterfaceAdmin(salas, ocupacoes);
+            }, (error) => {
+                console.error("Erro de permissão ou conexão com o Firebase:", error);
+                alert("Erro ao conectar com a nuvem do Firebase. Verifique sua conexão ou as regras do banco.");
             });
         }
 
@@ -152,22 +176,15 @@
 
             const idsSalas = Object.keys(salasObj);
 
-            if (idsSalas.length === 0) {
-                if (listaSalasUl) listaSalasUl.innerHTML = `<li style="color:#666;">Nenhuma sala cadastrada no momento.</li>`;
-                return;
-            }
-
             idsSalas.forEach(id => {
                 const s = salasObj[id];
                 const ocupacao = ocupacoesObj[id];
                 const isOcupada = ocupacao && ocupacao.curso;
 
-                // Preenche o select de seleção
                 if (selectSala) {
                     selectSala.innerHTML += `<option value="${id}">${s.nome} (${s.bloco})</option>`;
                 }
 
-                // Preenche a lista visual com detalhes da sala e status de ocupação
                 if (listaSalasUl) {
                     listaSalasUl.innerHTML += `
                         <li style="padding: 10px; margin-bottom: 8px; border-left: 4px solid ${isOcupada ? '#dc3545' : '#28a745'}; background: #f8f9fa;">
@@ -208,7 +225,7 @@
         }
 
         function removerSalaNuvem(id) {
-            if (!confirm("Deseja realmente excluir esta sala e seus dados de ocupação?")) return;
+            if (!confirm("Deseja realmente excluir esta sala e seus dados?")) return;
             db.ref('salas/' + id).remove();
             db.ref('ocupacoes/' + id).remove();
             alert("Sala removida com sucesso!");
