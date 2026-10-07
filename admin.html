@@ -3,24 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo - Mapeamento</title>
+    <title>Painel Administrativo - Banco Único</title>
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Firebase SDKs (Compatibilidade Direta no Navegador) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
-<body onload="carregarPainelAdmin()">
+<body onload="iniciarPainel()">
 
     <div class="wrapper">
         <header>
             <div class="logo-container">
                 <img src="sua-logo.png" alt="Logo" onerror="this.style.display='none'">
-                <h1>Painel do Administrador (Modo Direto)</h1>
+                <h1>Painel do Administrador (Sincronizado)</h1>
             </div>
             <nav>
                 <a href="index.html" style="background: #6c757d;">Ver Mapa Público</a>
             </nav>
         </header>
 
-        <!-- PAINEL ADMINISTRATIVO ABERTO DIRETAMENTE -->
-        <div id="painel-admin" class="container" style="margin-top: 30px;">
+        <div class="container" style="margin-top: 30px;">
             
             <!-- SECAO DE CADASTRO DE SALAS -->
             <div style="margin-bottom: 30px;">
@@ -39,30 +42,17 @@
                     </div>
                     <div class="form-grid">
                         <div>
-                            <label>Posição X (% na imagem):</label>
+                            <label>Posição X (%):</label>
                             <input type="number" id="nova-sala-x" placeholder="Ex: 50" min="0" max="100" step="any">
                         </div>
                         <div>
-                            <label>Posição Y (% na imagem):</label>
+                            <label>Posição Y (%):</label>
                             <input type="number" id="nova-sala-y" placeholder="Ex: 40" min="0" max="100" step="any">
                         </div>
                     </div>
-                    <button type="button" class="btn-action" style="background: var(--primary-color);" onclick="cadastrarNovaSalaDireto()">Adicionar Sala</button>
+                    <button type="button" class="btn-action" style="background: var(--primary-color);" onclick="cadastrarSalaNuvem()">Adicionar Sala</button>
                 </div>
                 <ul id="lista-salas-ul" class="list-group" style="margin-top: 15px;"></ul>
-            </div>
-
-            <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
-
-            <!-- SECAO DE PRE-CADASTRO DE CURSOS -->
-            <div style="margin-bottom: 30px;">
-                <h3>Pré-cadastro de Cursos</h3>
-                <p>Cadastre os nomes dos cursos antecipadamente para preenchimento rápido:</p>
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" id="novo-curso-input" placeholder="Nome do novo curso">
-                    <button type="button" class="btn-action" style="margin-top: 0; width: auto; white-space: nowrap;" onclick="cadastrarNovoCursoPreDefinido()">Adicionar Curso</button>
-                </div>
-                <ul id="lista-cursos-ul" class="list-group"></ul>
             </div>
 
             <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
@@ -77,18 +67,12 @@
                             <select id="select-sala"></select>
                         </div>
                         <div>
-                            <label>Curso Prévio (Opcional):</label>
-                            <select id="select-curso-cadastrado" onchange="preencherNomeCurso()">
-                                <option value="">-- Selecionar curso cadastrado --</option>
-                            </select>
+                            <label>Nome do Curso:</label>
+                            <input type="text" id="input-curso-nome" placeholder="Ex: GLOCK">
                         </div>
                     </div>
 
                     <div class="form-grid">
-                        <div>
-                            <label>Nome do Curso Realizado:</label>
-                            <input type="text" id="input-curso-nome" placeholder="Digite ou selecione acima">
-                        </div>
                         <div>
                             <label>Turno de Utilização:</label>
                             <select id="select-turno">
@@ -101,198 +85,112 @@
                                 <option value="Integral">Integral</option>
                             </select>
                         </div>
-                    </div>
-
-                    <div class="form-grid">
                         <div>
                             <label>Número de Alunos:</label>
-                            <input type="number" id="input-alunos" placeholder="Ex: 35" min="1">
-                        </div>
-                        <div>
-                            <label>Telefone para Contato:</label>
-                            <input type="text" id="telefone-contato" placeholder="(00) 00000-0000">
+                            <input type="number" id="input-alunos" placeholder="Ex: 44" min="1">
                         </div>
                     </div>
 
                     <div class="form-grid">
                         <div>
-                            <label>Data de Início do Curso:</label>
+                            <label>Data de Início:</label>
                             <input type="date" id="data-inicio">
                         </div>
                         <div>
-                            <label>Data de Término do Curso:</label>
+                            <label>Data de Término:</label>
                             <input type="date" id="data-fim">
                         </div>
                     </div>
 
-                    <button type="button" class="btn-action" onclick="salvarOcupacaoSalaDireto()">Salvar Ocupação da Sala</button>
-                    <button type="button" class="btn-action" style="background: #17a2b8; margin-top: 10px;" onclick="verificarBancoDeDados()">🔍 Ver Ocupações Salvas no Banco</button>
+                    <div style="margin-bottom: 15px;">
+                        <label>Telefone para Contato:</label>
+                        <input type="text" id="telefone-contato" placeholder="(96) 99109-0909">
+                    </div>
+
+                    <button type="button" class="btn-action" onclick="salvarOcupacaoNuvem()">Salvar Ocupação na Nuvem</button>
                 </div>
             </div>
 
         </div>
     </div>
 
-    <!-- SCRIPT DE GERENCIAMENTO DIRETO -->
+    <!-- SCRIPT DE CONEXÃO FIREBASE (Sua Configuração Exata) -->
     <script>
-        function initData() {
-            if (!localStorage.getItem("salas")) {
-                const defaultSalas = [
-                    { id: "s1", nome: "Sala 101", bloco: "Bloco A", x: 20, y: 30 },
-                    { id: "s2", nome: "Sala 102", bloco: "Bloco A", x: 40, y: 30 },
-                    { id: "s3", nome: "Lab Info", bloco: "Bloco B", x: 70, y: 60 },
-                    { id: "s4", nome: "Auditório", bloco: "Bloco C", x: 30, y: 80 }
-                ];
-                localStorage.setItem("salas", JSON.stringify(defaultSalas));
-            }
-            if (!localStorage.getItem("cursosCadastrados")) {
-                const defaultCursos = ["Engenharia de Software", "Administração Avançada", "Design Gráfico"];
-                localStorage.setItem("cursosCadastrados", JSON.stringify(defaultCursos));
-            }
-            if (!localStorage.getItem("ocupacoes")) {
-                localStorage.setItem("ocupacoes", JSON.stringify({}));
-            }
-        }
+        const firebaseConfig = {
+            apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
+            authDomain: "salas-iesp.firebaseapp.com",
+            databaseURL: "https://salas-iesp-default-rtdb.firebaseio.com",
+            projectId: "salas-iesp",
+            storageBucket: "salas-iesp.firebasestorage.app",
+            messagingSenderId: "456076383863",
+            appId: "1:456076383863:web:8edb172ae98c3be71f1872",
+            measurementId: "G-4KG8K3ZQK0"
+        };
 
-        function carregarPainelAdmin() {
-            initData();
-            carregarSelectsAdmin();
-            atualizarListaCursos();
-            atualizarListaSalas();
-        }
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-        function carregarSelectsAdmin() {
-            const salas = JSON.parse(localStorage.getItem("salas")) || [];
-            const cursos = JSON.parse(localStorage.getItem("cursosCadastrados")) || [];
-            
-            const selectSala = document.getElementById("select-sala");
-            if (selectSala) {
-                selectSala.innerHTML = `<option value="">-- Selecione a Sala --</option>`;
-                salas.forEach(s => {
-                    selectSala.innerHTML += `<option value="${s.id}">${s.nome} (${s.bloco})</option>`;
-                });
-            }
-
-            const selectCurso = document.getElementById("select-curso-cadastrado");
-            if (selectCurso) {
-                selectCurso.innerHTML = `<option value="">-- Selecionar curso pré-cadastrado --</option>`;
-                cursos.forEach(c => {
-                    selectCurso.innerHTML += `<option value="${c}">${c}</option>`;
-                });
-            }
-        }
-
-        function preencherNomeCurso() {
-            const selecionado = document.getElementById("select-curso-cadastrado").value;
-            if (selecionado) {
-                document.getElementById("input-curso-nome").value = selecionado;
-            }
-        }
-
-        // Cursos
-        function cadastrarNovoCursoPreDefinido() {
-            const inputEl = document.getElementById("novo-curso-input");
-            const nomeCurso = inputEl.value.trim();
-            if (!nomeCurso) {
-                alert("Digite o nome do curso.");
-                return;
-            }
-
-            let cursos = JSON.parse(localStorage.getItem("cursosCadastrados")) || [];
-            if (!cursos.includes(nomeCurso)) {
-                cursos.push(nomeCurso);
-                localStorage.setItem("cursosCadastrados", JSON.stringify(cursos));
-                inputEl.value = "";
-                carregarSelectsAdmin();
-                atualizarListaCursos();
-                alert("Curso pré-cadastrado com sucesso!");
-            } else {
-                alert("Este curso já está cadastrado.");
-            }
-        }
-
-        function atualizarListaCursos() {
-            const cursos = JSON.parse(localStorage.getItem("cursosCadastrados")) || [];
-            const ul = document.getElementById("lista-cursos-ul");
-            if (!ul) return;
-            ul.innerHTML = "";
-            cursos.forEach((c, index) => {
-                ul.innerHTML += `<li>${c} <button type="button" onclick="removerCurso(${index})" style="background:var(--danger-color); color:white; border:none; padding:3px 8px; border-radius:3px; cursor:pointer;">Excluir</button></li>`;
+        function iniciarPainel() {
+            // Sincroniza dados em tempo real da nuvem
+            db.ref('/').on('value', (snapshot) => {
+                const dados = snapshot.val() || {};
+                const salas = dados.salas || {};
+                atualizarInterfaceAdmin(salas);
             });
         }
 
-        function removerCurso(index) {
-            let cursos = JSON.parse(localStorage.getItem("cursosCadastrados")) || [];
-            cursos.splice(index, 1);
-            localStorage.setItem("cursosCadastrados", JSON.stringify(cursos));
-            carregarSelectsAdmin();
-            atualizarListaCursos();
+        function atualizarInterfaceAdmin(salasObj) {
+            const selectSala = document.getElementById("select-sala");
+            const listaSalasUl = document.getElementById("lista-salas-ul");
+            
+            if (selectSala) selectSala.innerHTML = `<option value="">-- Selecione a Sala --</option>`;
+            if (listaSalasUl) listaSalasUl.innerHTML = "";
+
+            Object.keys(salasObj).forEach(id => {
+                const s = salasObj[id];
+                if (selectSala) {
+                    selectSala.innerHTML += `<option value="${id}">${s.nome} (${s.bloco})</option>`;
+                }
+                if (listaSalasUl) {
+                    listaSalasUl.innerHTML += `<li><strong>${s.nome}</strong> (${s.bloco}) - X:${s.x}%, Y:${s.y}% <button type="button" onclick="removerSalaNuvem('${id}')" style="background:var(--danger-color); color:white; border:none; padding:3px 8px; border-radius:3px; cursor:pointer; float:right;">Excluir</button></li>`;
+                }
+            });
         }
 
-        // Salas
-        function cadastrarNovaSalaDireto() {
-            const nomeEl = document.getElementById("nova-sala-nome");
-            const blocoEl = document.getElementById("nova-sala-bloco");
-            const xEl = document.getElementById("nova-sala-x");
-            const yEl = document.getElementById("nova-sala-y");
-
-            const nome = nomeEl.value.trim();
-            const bloco = blocoEl.value.trim();
-            const x = parseFloat(xEl.value);
-            const y = parseFloat(yEl.value);
+        function cadastrarSalaNuvem() {
+            const nome = document.getElementById("nova-sala-nome").value.trim();
+            const bloco = document.getElementById("nova-sala-bloco").value.trim();
+            const x = parseFloat(document.getElementById("nova-sala-x").value);
+            const y = parseFloat(document.getElementById("nova-sala-y").value);
 
             if (!nome || !bloco || isNaN(x) || isNaN(y)) {
                 alert("Preencha todos os campos da sala corretamente.");
                 return;
             }
 
-            let salas = JSON.parse(localStorage.getItem("salas")) || [];
-            const novoId = "s_" + Date.now();
-            
-            salas.push({ id: novoId, nome, bloco, x, y });
-            localStorage.setItem("salas", JSON.stringify(salas));
-
-            alert("Sala cadastrada com sucesso!");
-            
-            nomeEl.value = "";
-            blocoEl.value = "";
-            xEl.value = "";
-            yEl.value = "";
-
-            carregarSelectsAdmin();
-            atualizarListaSalas();
-        }
-
-        function atualizarListaSalas() {
-            const salas = JSON.parse(localStorage.getItem("salas")) || [];
-            const ul = document.getElementById("lista-salas-ul");
-            if (!ul) return;
-            ul.innerHTML = "";
-            
-            salas.forEach((s) => {
-                ul.innerHTML += `<li>${s.nome} (${s.bloco}) - Pos(%): X:${s.x}, Y:${s.y} <button type="button" onclick="removerSala('${s.id}')" style="background:var(--danger-color); color:white; border:none; padding:3px 8px; border-radius:3px; cursor:pointer;">Excluir</button></li>`;
+            const novaSalaRef = db.ref('salas').push();
+            novaSalaRef.set({ nome, bloco, x, y }, (error) => {
+                if (error) {
+                    alert("Erro ao salvar sala na nuvem.");
+                } else {
+                    alert("Sala cadastrada e sincronizada globalmente!");
+                    document.getElementById("nova-sala-nome").value = "";
+                    document.getElementById("nova-sala-bloco").value = "";
+                    document.getElementById("nova-sala-x").value = "";
+                    document.getElementById("nova-sala-y").value = "";
+                }
             });
         }
 
-        function removerSala(id) {
+        function removerSalaNuvem(id) {
             if (!confirm("Deseja realmente excluir esta sala?")) return;
-            let salas = JSON.parse(localStorage.getItem("salas")) || [];
-            salas = salas.filter(s => s.id !== id);
-            localStorage.setItem("salas", JSON.stringify(salas));
-
-            let ocupacoes = JSON.parse(localStorage.getItem("ocupacoes")) || {};
-            if (ocupacoes[id]) {
-                delete ocupacoes[id];
-                localStorage.setItem("ocupacoes", JSON.stringify(ocupacoes));
-            }
-
-            carregarSelectsAdmin();
-            atualizarListaSalas();
+            db.ref('salas/' + id).remove();
+            db.ref('ocupacoes/' + id).remove();
             alert("Sala removida com sucesso!");
         }
 
-        // Ocupações
-        function salvarOcupacaoSalaDireto() {
+        function salvarOcupacaoNuvem() {
             const salaId = document.getElementById("select-sala").value;
             const curso = document.getElementById("input-curso-nome").value.trim();
             const turno = document.getElementById("select-turno").value;
@@ -301,47 +199,26 @@
             const fim = document.getElementById("data-fim").value;
             const telefone = document.getElementById("telefone-contato").value.trim();
 
-            if (!salaId) {
-                alert("Por favor, selecione uma sala no campo 'Selecione a Sala'.");
-                return;
-            }
-            if (!curso || !turno || !alunos || !inicio || !fim || !telefone) {
+            if (!salaId || !curso || !turno || !alunos || !inicio || !fim || !telefone) {
                 alert("Preencha todos os campos da ocupação.");
                 return;
             }
 
-            let ocupacoes = JSON.parse(localStorage.getItem("ocupacoes")) || {};
-            
-            ocupacoes[salaId] = { 
-                curso: curso, 
-                turno: turno, 
-                alunos: alunos, 
-                inicio: inicio, 
-                fim: fim, 
-                telefone: telefone 
-            };
-
-            localStorage.setItem("ocupacoes", JSON.stringify(ocupacoes));
-
-            alert("Sala mapeada e ocupação salva com sucesso!");
-            
-            document.getElementById("input-curso-nome").value = "";
-            document.getElementById("select-turno").value = "";
-            document.getElementById("input-alunos").value = "";
-            document.getElementById("data-inicio").value = "";
-            document.getElementById("data-fim").value = "";
-            document.getElementById("telefone-contato").value = "";
-            document.getElementById("select-curso-cadastrado").value = "";
-        }
-
-        function verificarBancoDeDados() {
-            const dadosSalvos = localStorage.getItem("ocupacoes");
-            const salasSalvas = localStorage.getItem("salas");
-            
-            console.log("Salas:", JSON.parse(salasSalvas));
-            console.log("Ocupações:", JSON.parse(dadosSalvos));
-            
-            alert("Dados gravados no banco local:\n\n" + (dadosSalvos || "Nenhuma ocupação cadastrada ainda."));
+            db.ref('ocupacoes/' + salaId).set({
+                curso, turno, alunos, inicio, fim, telefone
+            }, (error) => {
+                if (error) {
+                    alert("Erro ao salvar ocupação.");
+                } else {
+                    alert("Ocupação salva na nuvem! Visível instantaneamente em qualquer navegador.");
+                    document.getElementById("input-curso-nome").value = "";
+                    document.getElementById("select-turno").value = "";
+                    document.getElementById("input-alunos").value = "";
+                    document.getElementById("data-inicio").value = "";
+                    document.getElementById("data-fim").value = "";
+                    document.getElementById("telefone-contato").value = "";
+                }
+            });
         }
     </script>
 </body>
