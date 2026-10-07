@@ -436,4 +436,69 @@
         }
 
         function liberarSalaNuvem(id) {
-            if (!confirm("Deseja liberar esta sala
+            if (!confirm("Deseja liberar esta sala (remover a ocupação atual)?")) return;
+            db.ref('ocupacoes/' + id).remove();
+            alert("Sala liberada com sucesso!");
+        }
+
+        function cadastrarCursoNuvem() {
+            const val = document.getElementById("novo-curso-input").value.trim();
+            if (!val) { alert("Digite o nome do curso."); return; }
+            db.ref('cursos').push(val, (err) => {
+                if (!err) document.getElementById("novo-curso-input").value = "";
+            });
+        }
+
+        function removerCursoNuvem(key) {
+            db.ref('cursos/' + key).remove();
+        }
+
+        function cadastrarInstituicaoNuvem() {
+            const val = document.getElementById("nova-instituicao-input").value.trim();
+            if (!val) { alert("Digite o nome da instituição."); return; }
+            db.ref('instituicoes').push(val, (err) => {
+                if (!err) document.getElementById("nova-instituicao-input").value = "";
+            });
+        }
+
+        function removerInstituicaoNuvem(key) {
+            db.ref('instituicoes/' + key).remove();
+        }
+
+        function salvarOcupacaoNuvem() {
+            const salaId = document.getElementById("select-sala").value;
+            const instituicao = document.getElementById("input-instituicao-nome").value.trim();
+            const curso = document.getElementById("input-curso-nome").value.trim();
+            const turno = document.getElementById("select-turno").value;
+            const alunos = document.getElementById("input-alunos").value.trim();
+            const inicio = document.getElementById("data-inicio").value;
+            const fim = document.getElementById("data-fim").value;
+            const telefone = document.getElementById("telefone-contato").value.trim();
+
+            if (!salaId) {
+                alert("Por favor, selecione uma sala.");
+                return;
+            }
+            if (!curso || !turno || !alunos || !inicio || !fim || !telefone) {
+                alert("Preencha todos os campos obrigatórios da ocupação.");
+                return;
+            }
+
+            db.ref('ocupacoes/' + salaId).set({
+                instituicao, curso, turno, alunos, inicio, fim, telefone
+            }, (error) => {
+                if (!error) {
+                    alert("Ocupação salva na nuvem com sucesso!");
+                    document.getElementById("input-instituicao-nome").value = "";
+                    document.getElementById("input-curso-nome").value = "";
+                    document.getElementById("select-turno").value = "";
+                    document.getElementById("input-alunos").value = "";
+                    document.getElementById("data-inicio").value = "";
+                    document.getElementById("data-fim").value = "";
+                    document.getElementById("telefone-contato").value = "";
+                }
+            });
+        }
+    </script>
+</body>
+</html>
