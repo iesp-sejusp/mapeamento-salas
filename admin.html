@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo - Banco Único</title>
+    <title>Painel Administrativo - Sincronizado</title>
     <link rel="stylesheet" href="style.css">
     
     <!-- Firebase SDKs -->
@@ -16,7 +16,7 @@
         <header>
             <div class="logo-container">
                 <img src="sua-logo.png" alt="Logo" onerror="this.style.display='none'">
-                <h1>Painel do Administrador (Sincronizado)</h1>
+                <h1>Painel do Administrador (Sincronizado na Nuvem)</h1>
             </div>
             <nav>
                 <a href="index.html" style="background: #6c757d;">Ver Mapa Público</a>
@@ -56,7 +56,7 @@
                 <!-- LISTA DE SALAS -->
                 <h4 style="margin-top: 25px; color: var(--primary-color);">Salas Cadastradas e Status Atual</h4>
                 <ul id="lista-salas-ul" class="list-group" style="margin-top: 10px;">
-                    <li style="padding: 10px; color: #666;">Carregando dados da nuvem...</li>
+                    <li style="padding: 10px; color: #666;">Conectando à nuvem...</li>
                 </ul>
             </div>
 
@@ -121,7 +121,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT COM DIAGNÓSTICO DE CONEXÃO -->
+    <!-- SCRIPT COM CONFIGURAÇÃO COMPLETA -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
@@ -138,17 +138,17 @@
         const db = firebase.database();
 
         function iniciarPainel() {
-            console.log("Iniciando conexão com o Firebase...");
+            console.log("Conectando ao Realtime Database...");
             
             db.ref('/').on('value', (snapshot) => {
                 const dados = snapshot.val();
-                console.log("Dados recebidos da nuvem:", dados);
+                console.log("Dados da nuvem carregados com sucesso:", dados);
 
                 let salas = dados ? dados.salas : null;
                 
-                // Se a nuvem estiver completamente vazia, insere salas padrão iniciais
+                // Se o banco estiver vazio, cria as salas padrão iniciais
                 if (!salas) {
-                    console.log("Banco vazio detectado. Criando salas padrão na nuvem...");
+                    console.log("Banco vazio. Inicializando salas padrão...");
                     const defaultSalas = {
                         "s1": { nome: "Sala 101", bloco: "Bloco A", x: 20, y: 30 },
                         "s2": { nome: "Sala 102", bloco: "Bloco A", x: 40, y: 30 },
@@ -162,8 +162,8 @@
                 const ocupacoes = dados.ocupacoes || {};
                 atualizarInterfaceAdmin(salas, ocupacoes);
             }, (error) => {
-                console.error("Erro de permissão ou conexão com o Firebase:", error);
-                alert("Erro ao conectar com a nuvem do Firebase. Verifique sua conexão ou as regras do banco.");
+                console.error("Erro no Firebase:", error);
+                alert("Erro ao conectar no banco de dados. Verifique o console.");
             });
         }
 
@@ -213,9 +213,9 @@
             const novaSalaRef = db.ref('salas').push();
             novaSalaRef.set({ nome, bloco, x, y }, (error) => {
                 if (error) {
-                    alert("Erro ao salvar sala na nuvem.");
+                    alert("Erro ao salvar sala.");
                 } else {
-                    alert("Sala cadastrada e sincronizada globalmente!");
+                    alert("Sala cadastrada e sincronizada com sucesso!");
                     document.getElementById("nova-sala-nome").value = "";
                     document.getElementById("nova-sala-bloco").value = "";
                     document.getElementById("nova-sala-x").value = "";
@@ -225,7 +225,7 @@
         }
 
         function removerSalaNuvem(id) {
-            if (!confirm("Deseja realmente excluir esta sala e seus dados?")) return;
+            if (!confirm("Deseja realmente excluir esta sala?")) return;
             db.ref('salas/' + id).remove();
             db.ref('ocupacoes/' + id).remove();
             alert("Sala removida com sucesso!");
