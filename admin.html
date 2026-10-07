@@ -111,6 +111,18 @@
             font-weight: bold;
             font-size: 12px;
         }
+        .btn-imprimir {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .btn-imprimir:hover { background: #218838; }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -132,6 +144,17 @@
             font-weight: bold;
             color: #003366;
         }
+
+        /* Estilo específico para Impressão / PDF */
+        @media print {
+            body { background: #fff; padding: 0; }
+            .no-print { display: none !important; }
+            .wrapper { box-shadow: none; padding: 0; max-width: 100%; }
+            #area-impressao { display: block !important; }
+            table { border: 1px solid #000; }
+            th, td { border: 1px solid #000; padding: 8px; }
+            th { background: #003366 !important; color: white !important; -webkit-print-color-adjust: exact; }
+        }
     </style>
 
     <!-- Firebase SDKs Compat -->
@@ -141,7 +164,7 @@
 <body>
 
     <!-- TELA DE LOGIN ADMINISTRATIVO -->
-    <div id="login-overlay">
+    <div id="login-overlay" class="no-print">
         <div class="login-box">
             <h3 style="color: #003366; margin-top:0;">Área Restrita - IESP</h3>
             <p style="font-size: 13px; color: #666;">Digite a senha administrativa:</p>
@@ -152,13 +175,13 @@
     </div>
 
     <div class="wrapper" id="painel-conteudo" style="display: none;">
-        <header>
+        <header class="no-print">
             <h1>Painel Administrativo - Gestão e Relatórios</h1>
             <a href="index.html" class="btn-voltar">Ver Mapa Público</a>
         </header>
 
         <!-- 1. CADASTRAR SALAS -->
-        <div class="form-section">
+        <div class="form-section no-print">
             <h3 style="margin-top:0; color:#003366;">1. Cadastrar Nova Sala (Ilimitado)</h3>
             <form id="form-sala" onsubmit="cadastrarSala(event)">
                 <div style="display: flex; gap: 15px;">
@@ -184,7 +207,7 @@
         </div>
 
         <!-- 2. CADASTRAR CURSOS E INSTITUIÇÕES -->
-        <div style="display: flex; gap: 20px;">
+        <div style="display: flex; gap: 20px;" class="no-print">
             <div class="form-section" style="flex: 1;">
                 <h3 style="margin-top:0; color:#003366;">Cadastrar Novo Curso</h3>
                 <form id="form-curso" onsubmit="cadastrarCurso(event)">
@@ -209,7 +232,7 @@
         </div>
 
         <!-- 3. ALOCAR CURSO EM SALA -->
-        <div class="form-section">
+        <div class="form-section no-print">
             <h3 style="margin-top:0; color:#003366;">2. Alocar Curso / Ocupar Sala</h3>
             <form id="form-ocupacao" onsubmit="alocarCurso(event)">
                 <div style="display: flex; gap: 15px;">
@@ -264,8 +287,8 @@
         </div>
 
         <!-- 4. GERENCIAMENTO E LIBERAÇÃO -->
-        <h3>Gerenciamento de Salas Ocupadas</h3>
-        <table>
+        <h3 class="no-print">Gerenciamento de Salas Ocupadas</h3>
+        <table class="no-print">
             <thead>
                 <tr>
                     <th>Sala / Bloco</th>
@@ -279,31 +302,37 @@
             </tbody>
         </table>
 
-        <!-- 5. RELATÓRIO MENSAL CONSOLIDADO -->
-        <h3 style="margin-top: 40px; color: #003366;">📊 Relatório Mensal Consolidado de Cursos</h3>
-        <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 15px;">
-            <label style="margin:0;">Selecione o Mês / Ano:</label>
-            <input type="month" id="filtro-mes-ano" onchange="gerarRelatorioMensal()" style="width: 200px;">
-        </div>
-        
-        <div id="relatorio-resumo" class="relatorio-card">
-            Selecione um mês para visualizar o resumo consolidado.
-        </div>
+        <!-- 5. RELATÓRIO MENSAL CONSOLIDADO (ÁREA DE IMPRESSÃO) -->
+        <div id="area-impressao">
+            <h3 style="margin-top: 40px; color: #003366; display: flex; justify-content: space-between; align-items: center;">
+                <span>📊 Relatório Mensal Consolidado de Cursos - IESP / CBMAP</span>
+                <button class="btn-imprimir no-print" onclick="imprimirRelatorio()">🖨️ Imprimir / Salvar PDF</button>
+            </h3>
+            
+            <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 15px;" class="no-print">
+                <label style="margin:0;">Selecione o Mês / Ano:</label>
+                <input type="month" id="filtro-mes-ano" onchange="gerarRelatorioMensal()" style="width: 200px;">
+            </div>
+            
+            <div id="relatorio-resumo" class="relatorio-card">
+                Selecione um mês para visualizar o resumo consolidado.
+            </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Curso</th>
-                    <th>Instituição</th>
-                    <th>Período</th>
-                    <th>Turno</th>
-                    <th>Alunos</th>
-                </tr>
-            </thead>
-            <tbody id="tabela-relatorio">
-                <tr><td colspan="5" style="text-align:center;">Nenhum período selecionado.</td></tr>
-            </tbody>
-        </table>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Curso</th>
+                        <th>Instituição</th>
+                        <th>Período</th>
+                        <th>Turno</th>
+                        <th>Alunos</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-relatorio">
+                    <tr><td colspan="5" style="text-align:center;">Nenhum período selecionado.</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
@@ -344,14 +373,12 @@
                 renderizarPainelCompleto(dadosGlobais);
             });
 
-            // Define o mês atual no filtro do relatório por padrão
             const hoje = new Date();
             const ano = hoje.getFullYear();
             const mes = String(hoje.getMonth() + 1).padStart(2, '0');
             document.getElementById("filtro-mes-ano").value = `${ano}-${mes}`;
         }
 
-        // Funções de Cadastro
         function cadastrarSala(e) {
             e.preventDefault();
             db.ref('salas').push({
@@ -408,13 +435,16 @@
             }
         };
 
+        function imprimirRelatorio() {
+            window.print();
+        }
+
         function renderizarPainelCompleto(dados) {
             var salasObj = dados.salas || {};
             var cursosObj = dados.cursos || {};
             var instObj = dados.instituicoes || {};
             var ocupacoesObj = dados.ocupacoes || {};
 
-            // 1. Select Salas
             var selSala = document.getElementById("select-sala-alocacao");
             selSala.innerHTML = "<option value=''>Selecione uma sala...</option>";
             Object.keys(salasObj).forEach(id => {
@@ -423,21 +453,18 @@
                 selSala.innerHTML += `<option value="${id}">Sala ${s.nome} (Bloco ${s.bloco}) ${ocupada ? '[OCUPADA]' : '[LIVRE]'}</option>`;
             });
 
-            // 2. Select Cursos
             var selCurso = document.getElementById("select-curso-alocacao");
             selCurso.innerHTML = "<option value=''>Selecione um curso...</option>";
             Object.values(cursosObj).forEach(c => {
                 selCurso.innerHTML += `<option value="${c}">${c}</option>`;
             });
 
-            // 3. Select Instituições
             var selInst = document.getElementById("select-inst-alocacao");
             selInst.innerHTML = "<option value=''>Selecione uma instituição...</option>";
             Object.values(instObj).forEach(i => {
                 selInst.innerHTML += `<option value="${i}">${i}</option>`;
             });
 
-            // 4. Tabela de Gerenciamento
             var tbody = document.getElementById("tabela-gerenciamento");
             tbody.innerHTML = "";
             var idsSalas = Object.keys(salasObj);
@@ -461,12 +488,11 @@
                 });
             }
 
-            // Atualiza o relatório mensal
             gerarRelatorioMensal();
         }
 
         function gerarRelatorioMensal() {
-            var mesAnoFiltro = document.getElementById("filtro-mes-ano").value; // Formato "YYYY-MM"
+            var mesAnoFiltro = document.getElementById("filtro-mes-ano").value;
             var ocupacoesObj = dadosGlobais.ocupacoes || {};
             var tbodyRel = document.getElementById("tabela-relatorio");
             var resumoCard = document.getElementById("relatorio-resumo");
@@ -484,7 +510,6 @@
             Object.keys(ocupacoesObj).forEach(id => {
                 var oc = ocupacoesObj[id];
                 if (oc && oc.inicio) {
-                    // Verifica se o mês de início do curso confere com o filtro selecionado
                     var mesAnoInicio = oc.inicio.substring(0, 7); 
                     if (mesAnoInicio === mesAnoFiltro) {
                         totalCursosMes++;
