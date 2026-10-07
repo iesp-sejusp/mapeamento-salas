@@ -6,6 +6,34 @@
     <title>Painel Administrativo - Nuvem</title>
     <link rel="stylesheet" href="style.css">
     
+    <!-- Regras para imprimir apenas o relatório mensal -->
+    <style>
+        @media print {
+            /* Oculta tudo na página por padrão */
+            body * {
+                visibility: hidden;
+            }
+            /* Torna visível apenas a caixa do relatório mensal e seu conteúdo */
+            #secao-relatorio-mensal, #secao-relatorio-mensal * {
+                visibility: visible;
+            }
+            /* Posiciona o relatório no topo da folha impressa */
+            #secao-relatorio-mensal {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white !important;
+                border: none !important;
+                padding: 0 !important;
+            }
+            /* Esconde o botão de imprimir na folha final */
+            .btn-imprimir {
+                display: none !important;
+            }
+        }
+    </style>
+
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -55,7 +83,7 @@
 
                 <h4 style="margin-top: 25px; color: var(--primary-color);">Salas Cadastradas</h4>
                 <ul id="lista-salas-ul" class="list-group" style="margin-top: 10px;">
-                    <li style="padding: 10px; color: #666;">Conectando ao Firebase...</li>
+                    <li style="padding: 10px; color: #666;">Carregando dados da nuvem...</li>
                 </ul>
             </div>
 
@@ -73,7 +101,7 @@
             <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
 
             <!-- SECAO DE RELATÓRIO MENSAL CRONOLÓGICO -->
-            <div style="margin-bottom: 30px; background: #eef2f7; padding: 20px; border-radius: 8px; border: 1px solid #d1d9e0;">
+            <div id="secao-relatorio-mensal" style="margin-bottom: 30px; background: #eef2f7; padding: 20px; border-radius: 8px; border: 1px solid #d1d9e0;">
                 <h3>📊 Relatório de Ocupação por Mês (Ordem Cronológica)</h3>
                 <p>Selecione o mês desejado para consultar a programação em ordem de início:</p>
                 
@@ -83,7 +111,7 @@
                         <input type="month" id="filtro-mes-ano" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" onchange="gerarRelatorioMensal()">
                     </div>
                     <div>
-                        <button type="button" class="btn-action" style="margin-top: 0; background: #28a745;" onclick="window.print()">🖨️ Imprimir Relatório</button>
+                        <button type="button" class="btn-action btn-imprimir" style="margin-top: 0; background: #28a745;" onclick="window.print()">🖨️ Imprimir Relatório</button>
                     </div>
                 </div>
 
@@ -197,7 +225,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT COM DIAGNÓSTICO -->
+    <!-- SCRIPT DE GERENCIAMENTO FIREBASE -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
@@ -216,14 +244,10 @@
         let dadosGlobaisCache = {};
 
         function iniciarPainel() {
-            console.log("Tentando conectar ao banco de dados...");
-            
             db.ref('/').on('value', (snapshot) => {
                 const dados = snapshot.val();
-                console.log("Dados recebidos do Firebase:", dados);
                 
                 if (!dados) {
-                    console.log("Banco vazio. Criando salas padrão...");
                     const defaultSalas = {
                         "s1": { nome: "Sala 101", bloco: "Bloco A", x: 20, y: 30 },
                         "s2": { nome: "Sala 102", bloco: "Bloco A", x: 40, y: 30 }
@@ -244,9 +268,6 @@
                 if (mesInput) {
                     gerarRelatorioMensal();
                 }
-            }, (error) => {
-                console.error("ERRO DE CONEXÃO COM O FIREBASE:", error);
-                alert("Erro ao conectar no Firebase. Verifique sua conexão com a internet ou as Regras do Realtime Database.");
             });
         }
 
@@ -474,7 +495,7 @@
         }
 
         function cadastrarCursoNuvem() {
-            const val = document.getElementById("novo-curso-input").value.trim();
+            val = document.getElementById("novo-curso-input").value.trim();
             if (!val) { alert("Digite o nome do curso."); return; }
             db.ref('cursos').push(val, (err) => {
                 if (!err) document.getElementById("novo-curso-input").value = "";
