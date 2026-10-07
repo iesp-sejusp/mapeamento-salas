@@ -6,7 +6,6 @@
     <title>Mapa de Salas de Aula - Tempo Real</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- CSS de Correção de Camada (Z-Index e Fundo Sólido para evitar que sumam sob o fundo) -->
     <style>
         body {
             position: relative;
@@ -61,12 +60,12 @@
             <h2>Planta Baixa e Localização das Salas</h2>
             <p>Consulte abaixo o status em tempo real, turnos e ocupações das salas sincronizadas na nuvem.</p>
 
-            <!-- Área de Status de Diagnóstico Visual -->
+            <!-- Área de Status -->
             <div id="status-conexao" style="background: #fff3cd; color: #856404; border: 1px solid #ffeeba;">
                 🔄 Conectando ao banco de dados na nuvem...
             </div>
 
-            <!-- Visualização para Computadores (Mapa com marcadores) -->
+            <!-- Visualização para Computadores -->
             <div id="mapa-desktop-view">
                 <div id="mapa-container"></div>
                 <div class="legenda-planta" style="margin-top: 15px;">
@@ -101,11 +100,11 @@
                 measurementId: "G-4KG8K3ZQK0"
             };
 
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            const db = firebase.database();
+            // Inicializa o app garantindo a URL do banco
+            const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
+            const db = firebase.database(app);
 
+            // Escuta os dados da raiz
             db.ref('/').on('value', (snapshot) => {
                 const dados = snapshot.val() || {};
                 const salas = dados.salas || {};
