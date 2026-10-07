@@ -3,24 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa de Salas de Aula - Tempo Real</title>
+    <title>Mapa de Salas de Aula - IESP / CBMAP</title>
     
     <style>
         body {
-            background: #f4f6f9;
+            /* Imagem de fundo corrigida para 'seu-fundo.jpg' com escurecimento suave para legibilidade */
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('seu-fundo.jpg') no-repeat center center fixed;
+            background-size: cover;
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
+            min-height: 100vh;
         }
         .wrapper {
             max-width: 1100px;
             margin: 0 auto;
         }
         .container {
-            background: #ffffff;
+            background: rgba(255, 255, 255, 0.95);
             padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
         }
         header {
             display: flex;
@@ -29,6 +32,15 @@
             border-bottom: 2px solid #003366;
             padding-bottom: 15px;
             margin-bottom: 25px;
+        }
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logo-container img {
+            height: 50px;
+            object-fit: contain;
         }
         h1 { color: #003366; font-size: 22px; margin: 0; }
         nav a {
@@ -40,6 +52,8 @@
             font-weight: bold;
             font-size: 14px;
         }
+        nav a:hover { background: #002244; }
+
         #status-conexao {
             font-weight: bold;
             padding: 12px;
@@ -126,12 +140,16 @@
 <body>
 
     <div class="wrapper">
-        <header>
-            <h1>Mapeamento de Salas de Aula</h1>
-            <nav><a href="admin.html">Área Administrativa</a></nav>
-        </header>
-
         <div class="container">
+            <header>
+                <div class="logo-container">
+                    <!-- Logotipo Oficial do IESP -->
+                    <img src="sua-logo.png" alt="Logo IESP" onerror="this.style.display='none'">
+                    <h1>Mapeamento de Salas - IESP / CBMAP</h1>
+                </div>
+                <nav><a href="admin.html">Área Administrativa</a></nav>
+            </header>
+
             <h2>Planta Baixa e Status das Salas</h2>
             <div id="status-conexao">🔄 Conectando ao banco de dados...</div>
             <div style="text-align: right;">
@@ -141,14 +159,13 @@
             <div id="mapa-container"></div>
 
             <div style="margin-top: 35px;">
-                <h3 style="color: #003366;">Status Detalhado</h3>
+                <h3 style="color: #003366;">Status Detalhado das Salas</h3>
                 <div id="lista-mobile-container"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
             authDomain: "salas-iesp.firebaseapp.com",
@@ -165,7 +182,6 @@
         }
         const db = firebase.database();
 
-        // Declaração explícita no escopo global
         window.carregarSistema = function() {
             var statusDiv = document.getElementById("status-conexao");
             statusDiv.style.background = "#fff3cd";
@@ -203,7 +219,6 @@
                 return;
             }
 
-            // Exibe a planta baixa
             var img = document.createElement("img");
             img.src = "planta-baixa.jpg";
             img.alt = "Planta Baixa";
@@ -225,7 +240,6 @@
 
                 var ocupada = ocupacao && ocupacao.curso;
 
-                // Cria o pino no mapa
                 var marcador = document.createElement("div");
                 marcador.className = "sala-marcador " + (ocupada ? "ocupada" : "livre");
                 marcador.style.left = (sala.x !== undefined ? sala.x : 50) + "%";
@@ -240,7 +254,6 @@
                 marcador.innerHTML = "📍 " + sala.nome + "<div class='tooltip-info'>" + tooltipHtml + "</div>";
                 containerMapa.appendChild(marcador);
 
-                // Cria o card detalhado abaixo
                 var card = document.createElement("div");
                 card.className = "sala-card-mobile";
                 card.style.borderLeft = "6px solid " + (ocupada ? "#dc3545" : "#28a745");
@@ -258,7 +271,6 @@
             });
         }
 
-        // Executa ao carregar
         window.onload = function() {
             carregarSistema();
         };
