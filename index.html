@@ -7,8 +7,6 @@
     
     <style>
         body {
-            position: relative;
-            min-height: 100vh;
             background: #f4f6f9;
             font-family: Arial, sans-serif;
             margin: 0;
@@ -23,8 +21,6 @@
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            margin-top: 20px;
-            margin-bottom: 40px;
         }
         header {
             display: flex;
@@ -44,8 +40,6 @@
             font-weight: bold;
             font-size: 14px;
         }
-        nav a:hover { background: #002244; }
-        
         #status-conexao {
             font-weight: bold;
             padding: 12px;
@@ -56,7 +50,6 @@
             color: #856404;
             border: 1px solid #ffeeba;
         }
-        
         #mapa-container {
             position: relative;
             display: inline-block;
@@ -73,7 +66,6 @@
             display: block;
             object-fit: contain;
         }
-
         .sala-marcador {
             position: absolute;
             transform: translate(-50%, -50%);
@@ -98,32 +90,16 @@
             transform: translateX(-50%);
             background: #212529;
             color: #fff;
-            padding: 12px;
+            padding: 10px;
             border-radius: 6px;
-            width: 230px;
+            width: 210px;
             font-size: 11px;
-            line-height: 1.5;
+            line-height: 1.4;
             z-index: 30;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
             text-align: left;
             pointer-events: none;
         }
         .sala-marcador:hover .tooltip-info { display: block; }
-
-        .legenda-planta {
-            display: flex;
-            gap: 25px;
-            margin-top: 15px;
-            font-weight: bold;
-            font-size: 14px;
-            align-items: center;
-            justify-content: center;
-        }
-        .legenda-item { display: flex; align-items: center; gap: 8px; }
-        .bola-status { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
-        .bola-status.livre { background: #28a745; }
-        .bola-status.ocupada { background: #dc3545; }
-
         .sala-card-mobile {
             background: #f8f9fa;
             border: 1px solid #d1d9e0;
@@ -151,40 +127,28 @@
 
     <div class="wrapper">
         <header>
-            <h1>Mapeamento de Salas de Aula (Sincronizado)</h1>
-            <nav>
-                <a href="admin.html">Área Administrativa</a>
-            </nav>
+            <h1>Mapeamento de Salas de Aula</h1>
+            <nav><a href="admin.html">Área Administrativa</a></nav>
         </header>
 
         <div class="container">
-            <h2>Planta Baixa e Localização das Salas</h2>
-            <p>Consulte abaixo o status em tempo real, turnos e ocupações das salas sincronizadas na nuvem.</p>
-
+            <h2>Planta Baixa e Status das Salas</h2>
             <div id="status-conexao">🔄 Conectando ao banco de dados...</div>
             <div style="text-align: right;">
                 <button class="btn-atualizar" onclick="carregarSistema()">🔄 Atualizar Dados</button>
             </div>
 
-            <!-- Mapa com a Planta Baixa -->
-            <div id="mapa-desktop-view">
-                <div id="mapa-container"></div>
-                <div class="legenda-planta">
-                    <div class="legenda-item"><span class="bola-status livre"></span> Disponível (Livre)</div>
-                    <div class="legenda-item"><span class="bola-status ocupada"></span> Ocupada</div>
-                </div>
-            </div>
+            <div id="mapa-container"></div>
 
-            <!-- Cards / Lista -->
-            <div id="lista-mobile-view" style="margin-top: 35px;">
-                <h3 style="margin-top: 0; font-size: 18px; color: #003366;">Status Detalhado das Salas</h3>
+            <div style="margin-top: 35px;">
+                <h3 style="color: #003366;">Status Detalhado</h3>
                 <div id="lista-mobile-container"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // Inicialização do Firebase
+        // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
             authDomain: "salas-iesp.firebaseapp.com",
@@ -201,8 +165,8 @@
         }
         const db = firebase.database();
 
-        // Função global para carregar os dados
-        function carregarSistema() {
+        // Declaração explícita no escopo global
+        window.carregarSistema = function() {
             var statusDiv = document.getElementById("status-conexao");
             statusDiv.style.background = "#fff3cd";
             statusDiv.style.color = "#856404";
@@ -217,116 +181,84 @@
                 statusDiv.style.color = "#155724";
                 statusDiv.innerHTML = "✅ Dados sincronizados com sucesso!";
                 
-                renderizarTudo(salas, ocupacoes);
+                renderizar(salas, ocupacoes);
             }).catch(function(error) {
                 statusDiv.style.background = "#f8d7da";
                 statusDiv.style.color = "#721c24";
                 statusDiv.innerHTML = "❌ Erro: " + error.message;
             });
-        }
+        };
 
-        function renderizarTudo(salasObj, ocupacoesObj) {
-            var containerDesktop = document.getElementById("mapa-container");
-            var containerMobile = document.getElementById("lista-mobile-container");
-            
-            var idsSalas = Object.keys(salasObj);
+        function renderizar(salasObj, ocupacoesObj) {
+            var containerMapa = document.getElementById("mapa-container");
+            var containerLista = document.getElementById("lista-mobile-container");
+            var ids = Object.keys(salasObj);
 
-            if (containerDesktop) {
-                containerDesktop.innerHTML = "";
+            containerMapa.innerHTML = "";
+            containerLista.innerHTML = "";
 
-                if (idsSalas.length === 0) {
-                    containerDesktop.innerHTML = "<p style='padding: 40px; color:#666;'>Nenhuma sala cadastrada.</p>";
-                } else {
-                    var img = document.createElement("img");
-                    img.src = "planta-baixa.jpg";
-                    img.alt = "Planta Baixa";
-                    img.onerror = function() {
-                        containerDesktop.innerHTML = "<div style='padding:20px; color:#d9534f;'>⚠️ Imagem <em>planta-baixa.jpg</em> não encontrada na pasta.</div>";
-                    };
-                    containerDesktop.appendChild(img);
-
-                    idsSalas.forEach(function(id) {
-                        var sala = salasObj[id];
-                        var ocupacaoEncontrada = null;
-
-                        Object.keys(ocupacoesObj).forEach(function(ocKey) {
-                            var oc = ocupacoesObj[ocKey];
-                            if (ocKey === id || oc.salaId === id || oc.sala === sala.nome) {
-                                ocupacaoEncontrada = oc;
-                            }
-                        });
-
-                        var isOcupada = ocupacaoEncontrada && ocupacaoEncontrada.curso;
-
-                        var marcador = document.createElement("div");
-                        marcador.className = "sala-marcador " + (isOcupada ? "ocupada" : "livre");
-                        marcador.style.left = (sala.x !== undefined ? sala.x : 50) + "%";
-                        marcador.style.top = (sala.y !== undefined ? sala.y : 50) + "%";
-
-                        var htmlTooltip = "<strong style='color: #ffc107;'>Sala " + sala.nome + " (Bloco " + sala.bloco + ")</strong><br>" +
-                                          "<strong>Status:</strong> " + (isOcupada ? "<span style='color:#ff6b6b'>Ocupada</span>" : "<span style='color:#51cf66'>Disponível</span>") + "<br>";
-                        
-                        if (isOcupada) {
-                            htmlTooltip += "<strong>Curso:</strong> " + ocupacaoEncontrada.curso + "<br>" +
-                                           "<strong>Instituição:</strong> " + (ocupacaoEncontrada.instituicao || "N/A") + "<br>" +
-                                           "<strong>Turno:</strong> " + (ocupacaoEncontrada.turno || "N/A") + "<br>" +
-                                           "<strong>Alunos:</strong> " + (ocupacaoEncontrada.alunos || "N/A") + "<br>" +
-                                           "<strong>Início:</strong> " + (ocupacaoEncontrada.inicio || "N/A") + "<br>" +
-                                           "<strong>Fim:</strong> " + (ocupacaoEncontrada.fim || "N/A");
-                        } else {
-                            htmlTooltip += "Sala livre para agendamento.";
-                        }
-
-                        marcador.innerHTML = "📍 " + sala.nome + " (" + (isOcupada ? "Ocupada" : "Livre") + ")" +
-                                             "<div class='tooltip-info'>" + htmlTooltip + "</div>";
-                        
-                        containerDesktop.appendChild(marcador);
-                    });
-                }
+            if (ids.length === 0) {
+                containerMapa.innerHTML = "<p style='padding: 30px;'>Nenhuma sala cadastrada.</p>";
+                containerLista.innerHTML = "<p>Nenhuma sala cadastrada.</p>";
+                return;
             }
 
-            if (containerMobile) {
-                containerMobile.innerHTML = "";
-                if (idsSalas.length === 0) {
-                    containerMobile.innerHTML = "<p style='color:#666;'>Nenhuma sala cadastrada.</p>";
-                } else {
-                    idsSalas.forEach(function(id) {
-                        var sala = salasObj[id];
-                        var ocupacaoEncontrada = null;
+            // Exibe a planta baixa
+            var img = document.createElement("img");
+            img.src = "planta-baixa.jpg";
+            img.alt = "Planta Baixa";
+            img.onerror = function() {
+                containerMapa.innerHTML = "<div style='padding:20px; color:#d9534f;'>⚠️ Imagem <em>planta-baixa.jpg</em> não encontrada na pasta.</div>";
+            };
+            containerMapa.appendChild(img);
 
-                        Object.keys(ocupacoesObj).forEach(function(ocKey) {
-                            var oc = ocupacoesObj[ocKey];
-                            if (ocKey === id || oc.salaId === id || oc.sala === sala.nome) {
-                                ocupacaoEncontrada = oc;
-                            }
-                        });
+            ids.forEach(function(id) {
+                var sala = salasObj[id];
+                var ocupacao = null;
 
-                        var isOcupada = ocupacaoEncontrada && ocupacaoEncontrada.curso;
+                Object.keys(ocupacoesObj).forEach(function(ocKey) {
+                    var oc = ocupacoesObj[ocKey];
+                    if (ocKey === id || oc.salaId === id || oc.sala === sala.nome) {
+                        ocupacao = oc;
+                    }
+                });
 
-                        var card = document.createElement("div");
-                        card.className = "sala-card-mobile";
-                        card.style.borderLeft = "6px solid " + (isOcupada ? "#dc3545" : "#28a745");
-                        
-                        var htmlCard = "<h4 style='margin: 0 0 6px 0; color: #003366;'>🏫 Sala " + sala.nome + " (Bloco " + sala.bloco + ")</h4>" +
-                                       "<p style='margin: 4px 0;'><strong>Status:</strong> " + (isOcupada ? "<span style='color:#dc3545; font-weight:bold;'>🔴 Ocupada</span>" : "<span style='color:#28a745; font-weight:bold;'>🟢 Disponível (Livre)</span>") + "</p>";
-                        
-                        if (isOcupada) {
-                            htmlCard += "<p style='margin: 4px 0;'><strong>Curso:</strong> " + ocupacaoEncontrada.curso + "</p>" +
-                                        "<p style='margin: 4px 0;'><strong>Instituição:</strong> " + (ocupacaoEncontrada.instituicao || "Não informada") + "</p>" +
-                                        "<p style='margin: 4px 0;'><strong>Turno:</strong> " + (ocupacaoEncontrada.turno || "N/A") + " | <strong>Alunos:</strong> " + (ocupacaoEncontrada.alunos || "N/A") + "</p>" +
-                                        "<p style='margin: 4px 0; color: #0056b3;'><strong>Período:</strong> " + (ocupacaoEncontrada.inicio || "") + " até " + (ocupacaoEncontrada.fim || "") + "</p>";
-                        } else {
-                            htmlCard += "<p style='margin: 4px 0; color: #666; font-style: italic;'>Sala livre para uso.</p>";
-                        }
+                var ocupada = ocupacao && ocupacao.curso;
 
-                        card.innerHTML = htmlCard;
-                        containerMobile.appendChild(card);
-                    });
+                // Cria o pino no mapa
+                var marcador = document.createElement("div");
+                marcador.className = "sala-marcador " + (ocupada ? "ocupada" : "livre");
+                marcador.style.left = (sala.x !== undefined ? sala.x : 50) + "%";
+                marcador.style.top = (sala.y !== undefined ? sala.y : 50) + "%";
+
+                var tooltipHtml = "<b>Sala " + sala.nome + " (" + sala.bloco + ")</b><br>" +
+                                  "Status: " + (ocupada ? "Ocupada" : "Disponível");
+                if (ocupada) {
+                    tooltipHtml += "<br>Curso: " + ocupacao.curso + "<br>Alunos: " + (ocupacao.alunos || "N/A");
                 }
-            }
+
+                marcador.innerHTML = "📍 " + sala.nome + "<div class='tooltip-info'>" + tooltipHtml + "</div>";
+                containerMapa.appendChild(marcador);
+
+                // Cria o card detalhado abaixo
+                var card = document.createElement("div");
+                card.className = "sala-card-mobile";
+                card.style.borderLeft = "6px solid " + (ocupada ? "#dc3545" : "#28a745");
+                
+                var cardHtml = "<h4 style='margin:0 0 5px 0; color:#003366;'>🏫 Sala " + sala.nome + " (Bloco " + sala.bloco + ")</h4>" +
+                               "<p style='margin:3px 0;'><strong>Status:</strong> " + (ocupada ? "<span style='color:#dc3545;'>Ocupada</span>" : "<span style='color:#28a745;'>Disponível</span>") + "</p>";
+                
+                if (ocupada) {
+                    cardHtml += "<p style='margin:3px 0;'><strong>Curso:</strong> " + ocupacao.curso + "</p>" +
+                                "<p style='margin:3px 0;'><strong>Instituição:</strong> " + (ocupacao.instituicao || "N/A") + " | <strong>Alunos:</strong> " + (ocupacao.alunos || "N/A") + "</p>" +
+                                "<p style='margin:3px 0;'><strong>Período:</strong> " + (ocupacao.inicio || "") + " a " + (ocupacao.fim || "") + "</p>";
+                }
+                card.innerHTML = cardHtml;
+                containerLista.appendChild(card);
+            });
         }
 
-        // Executa ao carregar a página
+        // Executa ao carregar
         window.onload = function() {
             carregarSistema();
         };
