@@ -6,11 +6,11 @@
     <title>Mapa de Salas de Aula - Tempo Real</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs Compat -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
-<body onload="iniciarMapa()">
+<body>
 
     <div class="wrapper">
         <header>
@@ -27,6 +27,11 @@
             <h2>Planta Baixa e Localização das Salas</h2>
             <p>Consulte abaixo o status em tempo real, turnos e ocupações das salas sincronizadas na nuvem.</p>
 
+            <!-- Área de Status de Diagnóstico -->
+            <div id="status-conexao" style="padding: 10px; margin-bottom: 15px; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; border-radius: 4px; font-size: 13px;">
+                🔄 Conectando ao banco de dados na nuvem...
+            </div>
+
             <!-- Visualização para Computadores (Mapa com marcadores) -->
             <div id="mapa-desktop-view">
                 <div id="mapa-container"></div>
@@ -36,78 +41,85 @@
                 </div>
             </div>
 
-            <!-- Visualização para Celulares e Fallback -->
+            <!-- Visualização para Celulares e Cards -->
             <div id="lista-mobile-view" style="margin-top: 30px;">
                 <h3 style="margin-top: 0; font-size: 18px; color: var(--primary-color);">Status Geral das Salas</h3>
-                <div id="lista-mobile-container"></div>
+                <div id="lista-mobile-container">
+                    <p style="color: #666;">Aguardando dados...</p>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- SCRIPT DE LEITURA DO MAPA -->
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
-            authDomain: "salas-iesp.firebaseapp.com",
-            databaseURL: "https://salas-iesp-default-rtdb.firebaseio.com",
-            projectId: "salas-iesp",
-            storageBucket: "salas-iesp.firebasestorage.app",
-            messagingSenderId: "456076383863",
-            appId: "1:456076383863:web:8edb172ae98c3be71f1872",
-            measurementId: "G-4KG8K3ZQK0"
-        };
+        const statusDiv = document.getElementById("status-conexao");
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        try {
+            const firebaseConfig = {
+                apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
+                authDomain: "salas-iesp.firebaseapp.com",
+                databaseURL: "https://salas-iesp-default-rtdb.firebaseio.com",
+                projectId: "salas-iesp",
+                storageBucket: "salas-iesp.firebasestorage.app",
+                messagingSenderId: "456076383863",
+                appId: "1:456076383863:web:8edb172ae98c3be71f1872",
+                measurementId: "G-4KG8K3ZQK0"
+            };
 
-        function iniciarMapa() {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            const db = firebase.database();
+
+            // Executa a leitura ao carregar a página
             db.ref('/').on('value', (snapshot) => {
                 const dados = snapshot.val() || {};
                 const salas = dados.salas || {};
                 const ocupacoes = dados.ocupacoes || {};
                 
-                renderizarMapaPublico(salas, ocupacoes);
+                statusDiv.style.background = "#d4edda";
+                statusDiv.style.color = "#155724";
+                statusDiv.style.borderColor = "#c3e6cb";
+                statusDiv.innerHTML = "✅ Conectado com sucesso à nuvem! Dados sincronizados.";
+
+                renderizarTudo(salas, ocupacoes);
+            }, (error) => {
+                statusDiv.style.background = "#f8d7da";
+                statusDiv.style.color = "#721c24";
+                statusDiv.style.borderColor = "#f5c6cb";
+                statusDiv.innerHTML = "❌ Erro ao conectar ao Firebase: " + error.message;
             });
+
+        } catch (e) {
+            statusDiv.style.background = "#f8d7da";
+            statusDiv.style.color = "#721c24";
+            statusDiv.style.borderColor = "#f5c6cb";
+            statusDiv.innerHTML = "❌ Erro crítico no script: " + e.message;
         }
 
-        function renderizarMapaPublico(salasObj, ocupacoesObj) {
+        function renderizarTudo(salasObj, ocupacoesObj) {
             const containerDesktop = document.getElementById("mapa-container");
             const containerMobile = document.getElementById("lista-mobile-container");
-            
             const idsSalas = Object.keys(salasObj);
 
-            // 1. Renderização Desktop (Planta com Marcadores + Alerta se a imagem faltar)
+            // 1. Render Desktop
             if (containerDesktop) {
                 containerDesktop.innerHTML = "";
-
                 if (idsSalas.length === 0) {
-                    containerDesktop.innerHTML = `<p style="text-align:center; padding: 30px; color:#666;">Nenhuma sala cadastrada no banco de dados.</p>`;
+                    containerDesktop.innerHTML = `<p style="text-align:center; padding: 20px; color:#666;">Nenhuma sala cadastrada no banco.</p>`;
                 } else {
-                    const wrapper = document.createElement("div");
-                    wrapper.classList.add("planta-visual-wrapper");
-
                     const imgContainer = document.createElement("div");
-                    imgContainer.classList.add("planta-imagem-container");
                     imgContainer.style.position = "relative";
                     imgContainer.style.display = "inline-block";
                     imgContainer.style.width = "100%";
 
                     const img = document.createElement("img");
                     img.src = "planta-baixa.jpg";
-                    img.alt = "Planta Baixa do Prédio";
                     img.style.width = "100%";
-                    img.style.maxHeight = "600px";
-                    img.style.display = "block";
+                    img.style.maxHeight = "500px";
                     img.style.objectFit = "contain";
-
-                    // Se a imagem falhar, mostra o aviso mas continua exibindo os dados abaixo normalmente
-                    img.onerror = function() {
-                        const aviso = document.createElement("div");
-                        aviso.style.cssText = "padding: 20px; background: #fff3f3; color: #d9534f; border: 1px solid #f5c6cb; text-align: center; border-radius: 6px; margin-bottom: 15px;";
-                        aviso.innerHTML = `<strong>⚠️ Aviso:</strong> A imagem <em>planta-baixa.jpg</em> não foi encontrada na pasta. Os status abaixo continuam atualizados em tempo real.`;
-                        containerDesktop.prepend(aviso);
-                    };
-
+                    img.onerror = () => { img.style.display = "none"; }; // Oculta se não achar a imagem, mas mantém os marcadores
                     imgContainer.appendChild(img);
 
                     idsSalas.forEach(id => {
@@ -117,31 +129,38 @@
 
                         const marcador = document.createElement("div");
                         marcador.className = `sala-marcador ${isOcupada ? 'ocupada' : 'livre'}`;
-                        
-                        const posX = sala.x !== undefined ? sala.x : 50;
-                        const posY = sala.y !== undefined ? sala.y : 50;
-                        marcador.style.left = `${posX}%`;
-                        marcador.style.top = `${posY}%`;
+                        marcador.style.left = `${sala.x !== undefined ? sala.x : 50}%`;
+                        marcador.style.top = `${sala.y !== undefined ? sala.y : 50}%`;
                         marcador.style.position = "absolute";
                         marcador.style.transform = "translate(-50%, -50%)";
+                        marcador.style.padding = "6px 10px";
+                        marcador.style.borderRadius = "4px";
+                        marcador.style.color = "#fff";
+                        marcador.style.fontWeight = "bold";
+                        marcador.style.fontSize = "12px";
+                        marcador.style.background = isOcupada ? "#dc3545" : "#28a745";
+                        marcador.style.cursor = "pointer";
 
                         marcador.innerHTML = `
                             ${sala.nome}
-                            <div class="tooltip-info">
+                            <div class="tooltip-info" style="display:none; position:absolute; bottom:125%; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:8px; border-radius:4px; width:180px; font-size:11px; z-index:10;">
                                 <strong>${sala.nome} (${sala.bloco})</strong><br>
                                 Status: ${isOcupada ? 'Ocupada' : 'Disponível'}<br>
-                                ${isOcupada ? `Instituição: ${ocupacao.instituicao || 'N/A'}<br>Curso: ${ocupacao.curso}<br>Turno:${ocupacao.turno || 'Não informado'}<br>Alunos: ${ocupacao.alunos \vert{}\vert{} 'N/A'}<br>Início: ${formatarData(ocupacao.inicio)}<br>Término: ${formatarData(ocupacao.fim)}<br>Contato:${ocupacao.telefone}` : 'Livre para uso'}
+                                ${isOcupada ? `Curso: ${ocupacao.curso}<br>Alunos:${ocupacao.alunos || 'N/A'}` : ''}
                             </div>
                         `;
+
+                        // Mostra tooltip ao passar o mouse ou clicar
+                        marcador.onmouseenter = () => marcador.querySelector('.tooltip-info').style.display = 'block';
+                        marcador.onmouseleave = () => marcador.querySelector('.tooltip-info').style.display = 'none';
+
                         imgContainer.appendChild(marcador);
                     });
-
-                    wrapper.appendChild(imgContainer);
-                    containerDesktop.appendChild(wrapper);
+                    containerDesktop.appendChild(imgContainer);
                 }
             }
 
-            // 2. Renderização da Lista de Cards (Garante visualização imediata)
+            // 2. Render Mobile / Cards
             if (containerMobile) {
                 containerMobile.innerHTML = "";
                 if (idsSalas.length === 0) {
@@ -153,31 +172,21 @@
                         const isOcupada = ocupacao && ocupacao.curso;
 
                         const card = document.createElement("div");
-                        card.className = `sala-card-mobile ${isOcupada ? 'ocupada' : 'livre'}`;
-                        card.style.cssText = "background: #fff; border: 1px solid #ddd; padding: 12px; margin-bottom: 10px; border-radius: 6px; border-left: 5px solid " + (isOcupada ? '#dc3545' : '#28a745') + ";";
+                        card.style.cssText = `background: #fff; border: 1px solid #ddd; padding: 12px; margin-bottom: 10px; border-radius: 6px; border-left: 5px solid ${isOcupada ? '#dc3545' : '#28a745'};`;
                         
                         card.innerHTML = `
                             <h4 style="margin: 0 0 5px 0; color: #333;">${sala.nome} (${sala.bloco})</h4>
                             <p style="margin: 3px 0;"><strong>Status:</strong> ${isOcupada ? '<span style="color:#dc3545; font-weight:bold;">Ocupada</span>' : '<span style="color:#28a745; font-weight:bold;">Disponível</span>'}</p>
                             ${isOcupada ? `
-                                <p style="margin: 3px 0;"><strong>Instituição:</strong> ${ocupacao.instituicao || 'Não informada'}</p>
                                 <p style="margin: 3px 0;"><strong>Curso:</strong> ${ocupacao.curso}</p>
-                                <p style="margin: 3px 0;"><strong>Turno:</strong> ${ocupacao.turno \vert{}\vert{} 'Não informado'} \vert{} <strong>Alunos:</strong> ${ocupacao.alunos || 'N/A'}</p>
-                                <p style="margin: 3px 0; color: #0056b3;"><strong>Período:</strong> ${formatarData(ocupacao.inicio)} até ${formatarData(ocupacao.fim)}</p>
-                                <p style="margin: 3px 0;"><strong>Contato:</strong> ${ocupacao.telefone}</p>
-                            ` : `<p style="margin: 3px 0; color: #666; font-style: italic;">Sala livre para agendamento.</p>`}
+                                <p style="margin: 3px 0;"><strong>Instituição:</strong> ${ocupacao.instituicao || 'Não informada'}</p>
+                                <p style="margin: 3px 0;"><strong>Alunos:</strong> ${ocupacao.alunos \vert{}\vert{} 'N/A'} \vert{} <strong>Turno:</strong>${ocupacao.turno || 'N/A'}</p>
+                            ` : `<p style="margin: 3px 0; color: #666; font-style: italic;">Sala livre.</p>`}
                         `;
                         containerMobile.appendChild(card);
                     });
                 }
             }
-        }
-
-        function formatarData(dataIso) {
-            if (!dataIso) return "";
-            const partes = dataIso.split("-");
-            if (partes.length < 3) return dataIso;
-            return `${partes[2]}/${partes[1]}/${partes[0]}`;
         }
     </script>
 </body>
