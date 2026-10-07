@@ -13,7 +13,7 @@
             padding: 20px;
         }
         .wrapper {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
             background: #fff;
             padding: 30px;
@@ -76,10 +76,15 @@
             cursor: pointer;
         }
 
-        .form-group {
-            margin-bottom: 15px;
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 25px;
+            border: 1px solid #e9ecef;
         }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: #333; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #333; font-size: 13px; }
         input, select {
             width: 100%;
             padding: 10px;
@@ -109,7 +114,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 15px;
         }
         th, td {
             border: 1px solid #dee2e6;
@@ -129,8 +134,8 @@
     <!-- TELA DE LOGIN ADMINISTRATIVO -->
     <div id="login-overlay">
         <div class="login-box">
-            <h3 style="color: #003366; margin-top:0;">Área Restrita</h3>
-            <p style="font-size: 13px; color: #666;">Digite a senha administrativa para continuar:</p>
+            <h3 style="color: #003366; margin-top:0;">Área Restrita - IESP</h3>
+            <p style="font-size: 13px; color: #666;">Digite a senha administrativa (`sargento2026`):</p>
             <input type="password" id="senha-admin" placeholder="Senha de acesso" onkeypress="if(event.key === 'Enter') validarSenha()">
             <button onclick="validarSenha()">Entrar no Painel</button>
             <p id="erro-senha" style="color: #dc3545; font-size: 12px; margin-top: 10px; display: none;">Senha incorreta!</p>
@@ -144,12 +149,12 @@
         </header>
 
         <!-- Seção 1: Cadastrar Nova Sala -->
-        <div style="background: #f8f9fa; padding: 20px; border-radius: 6px; margin-bottom: 30px; border: 1px solid #e9ecef;">
-            <h3 style="margin-top:0; color:#003366;">Cadastrar Nova Sala</h3>
+        <div class="form-section">
+            <h3 style="margin-top:0; color:#003366;">Cadastrar Nova Sala (Sem limite)</h3>
             <form id="form-sala" onsubmit="cadastrarSala(event)">
                 <div style="display: flex; gap: 15px;">
                     <div class="form-group" style="flex: 2;">
-                        <label>Nome da Sala (ex: B5, C1, E1):</label>
+                        <label>Nome da Sala (ex: B7, C2, E2):</label>
                         <input type="text" id="sala-nome" required placeholder="Ex: B7">
                     </div>
                     <div class="form-group" style="flex: 2;">
@@ -157,11 +162,11 @@
                         <input type="text" id="sala-bloco" required placeholder="Ex: B">
                     </div>
                     <div class="form-group" style="flex: 1;">
-                        <label>Pos X (%):</label>
+                        <label>Pos X (% no mapa):</label>
                         <input type="number" id="sala-x" value="50" required>
                     </div>
                     <div class="form-group" style="flex: 1;">
-                        <label>Pos Y (%):</label>
+                        <label>Pos Y (% no mapa):</label>
                         <input type="number" id="sala-y" value="50" required>
                     </div>
                 </div>
@@ -169,17 +174,63 @@
             </form>
         </div>
 
-        <!-- Seção 2: Gerenciar e Ocupar Salas -->
-        <h3>Gerenciamento e Ocupação de Salas</h3>
+        <!-- Seção 2: Alocar Curso / Ocupar Sala -->
+        <div class="form-section">
+            <h3 style="margin-top:0; color:#003366;">Alocar Curso / Ocupação em Sala</h3>
+            <form id="form-ocupacao" onsubmit="alocarCurso(event)">
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 2;">
+                        <label>Selecione a Sala:</label>
+                        <select id="select-sala-alocacao" required>
+                            <option value="">Carregando salas...</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 3;">
+                        <label>Nome do Curso:</label>
+                        <input type="text" id="oc-curso" required placeholder="Ex: Curso de APH">
+                    </div>
+                    <div class="form-group" style="flex: 2;">
+                        <label>Instituição:</label>
+                        <input type="text" id="oc-instituicao" required placeholder="Ex: CBMAP / PM">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Turno:</label>
+                        <input type="text" id="oc-turno" required placeholder="Ex: Manhã">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Alunos:</label>
+                        <input type="number" id="oc-alunos" required placeholder="Ex: 35">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Início:</label>
+                        <input type="date" id="oc-inicio" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Fim:</label>
+                        <input type="date" id="oc-fim" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Telefone:</label>
+                        <input type="text" id="oc-telefone" placeholder="Ex: (96) 9999-9999">
+                    </div>
+                </div>
+                <button type="submit" class="btn-acao">🔒 Ocupar / Alocar Sala</button>
+            </form>
+        </div>
+
+        <!-- Seção 3: Gerenciamento Geral e Liberação -->
+        <h3>Gerenciamento e Liberação de Salas</h3>
         <table>
             <thead>
                 <tr>
                     <th>Sala / Bloco</th>
                     <th>Status Atual</th>
-                    <th>Curso / Ocupação</th>
+                    <th>Curso / Ocupação Alocada</th>
                     <th>Ações</th>
                 </tr>
-            T</thead>
+            </thead>
             <tbody id="tabela-gerenciamento">
                 <tr><td colspan="4" style="text-align:center;">Carregando dados...</td></tr>
             </tbody>
@@ -187,7 +238,6 @@
     </div>
 
     <script>
-        // Defina aqui a senha de acesso administrativo desejada
         const SENHA_ADMIN = "sargento2026";
 
         function validarSenha() {
@@ -222,11 +272,11 @@
         function carregarPainelAdmin() {
             db.ref('/').on('value', function(snapshot) {
                 dadosGlobais = snapshot.val() || {};
-                renderizarTabelaAdmin(dadosGlobais.salas || {}, dadosGlobais.ocupacoes || {});
+                renderizarPainel(dadosGlobais.salas || {}, dadosGlobais.ocupacoes || {});
             });
         }
 
-        // Cadastro de nova sala usando push() para permitir dezenas/centenas de salas sem limite
+        // 1. Cadastrar nova sala sem limite (usando push)
         function cadastrarSala(event) {
             event.preventDefault();
             var nome = document.getElementById("sala-nome").value;
@@ -247,7 +297,30 @@
             });
         }
 
-        // Função corrigida para liberar sala (remove o nó de ocupação correspondente)
+        // 2. Alocar curso em uma sala
+        function alocarCurso(event) {
+            event.preventDefault();
+            var salaId = document.getElementById("select-sala-alocacao").value;
+            
+            var ocupacaoData = {
+                curso: document.getElementById("oc-curso").value,
+                instituicao: document.getElementById("oc-instituicao").value,
+                turno: document.getElementById("oc-turno").value,
+                alunos: document.getElementById("oc-alunos").value,
+                inicio: document.getElementById("oc-inicio").value,
+                fim: document.getElementById("oc-fim").value,
+                telefone: document.getElementById("oc-telefone").value
+            };
+
+            db.ref('ocupacoes/' + salaId).set(ocupacaoData).then(function() {
+                alert("Sala ocupada/alocada com sucesso!");
+                document.getElementById("form-ocupacao").reset();
+            }).catch(function(error) {
+                alert("Erro ao alocar curso: " + error.message);
+            });
+        }
+
+        // 3. Liberar sala (remove a ocupação e deixa verde novamente)
         window.liberarSala = function(salaId) {
             if (confirm("Tem certeza que deseja liberar esta sala?")) {
                 db.ref('ocupacoes/' + salaId).remove().then(function() {
@@ -258,10 +331,12 @@
             }
         };
 
-        function renderizarTabelaAdmin(salasObj, ocupacoesObj) {
+        function renderizarPainel(salasObj, ocupacoesObj) {
+            var selectSala = document.getElementById("select-sala-alocacao");
             var tbody = document.getElementById("tabela-gerenciamento");
             var ids = Object.keys(salasObj);
 
+            selectSala.innerHTML = "<option value=''>Selecione uma sala...</option>";
             tbody.innerHTML = "";
 
             if (ids.length === 0) {
@@ -274,16 +349,23 @@
                 var ocupacao = ocupacoesObj[id] || {};
                 var isOcupada = ocupacao && ocupacao.curso;
 
+                // Preenche o select do formulário de alocação
+                var opt = document.createElement("option");
+                opt.value = id;
+                opt.text = "Sala " + sala.nome + " (Bloco " + sala.bloco + ") " + (isOcupada ? "[OCUPADA]" : "[LIVRE]");
+                selectSala.appendChild(opt);
+
+                // Preenche a tabela administrativa
                 var tr = document.createElement("tr");
                 
                 var tdSala = document.createElement("td");
                 tdSala.innerHTML = "<strong>Sala " + sala.nome + "</strong> (Bloco " + sala.bloco + ")";
                 
                 var tdStatus = document.createElement("td");
-                tdStatus.innerHTML = isOcupada ? "<span style='color:#dc3545; font-weight:bold;'>Ocupada</span>" : "<span style='color:#28a745; font-weight:bold;'>Disponível</span>";
+                tdStatus.innerHTML = isOcupada ? "<span style='color:#dc3545; font-weight:bold;'>🔴 Ocupada</span>" : "<span style='color:#28a745; font-weight:bold;'>🟢 Disponível</span>";
                 
                 var tdCurso = document.createElement("td");
-                tdCurso.innerHTML = isOcupada ? (ocupacao.curso + " (" + (ocupacao.instituicao || "N/A") + ") - Turno: " + (ocupacao.turno || "N/A")) : "<em style='color:#666;'>Nenhum curso alocado</em>";
+                tdCurso.innerHTML = isOcupada ? (ocupacao.curso + " (" + (ocupacao.instituicao || "N/A") + ") - Turno: " + (ocupacao.turno || "N/A")) : "<em style='color:#666;'>Sala livre</em>";
                 
                 var tdAcoes = document.createElement("td");
                 if (isOcupada) {
