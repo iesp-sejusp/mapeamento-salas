@@ -6,7 +6,7 @@
     <title>Painel Administrativo - Nuvem</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- CSS de Impressão com Larguras Fixas e Alinhamento Perfeito -->
+    <!-- CSS de Impressão com Margens Otimizadas para Fechar a Tabela -->
     <style>
         #area-impressao-oficial {
             display: none;
@@ -26,7 +26,7 @@
                 top: 0;
                 width: 100%;
                 background: white;
-                padding: 10px;
+                padding: 5px;
             }
             #area-impressao-oficial img {
                 max-height: 65px !important;
@@ -44,14 +44,14 @@
             #area-impressao-oficial th, #area-impressao-oficial td {
                 display: table-cell !important;
                 border: 1px solid #333 !important;
-                padding: 8px 6px !important;
+                padding: 8px 5px !important;
                 font-size: 12px !important;
                 word-wrap: break-word !important;
                 overflow: hidden !important;
             }
             @page {
                 size: portrait;
-                margin: 15mm;
+                margin: 10mm; /* Margens laterais reduzidas para garantir que a borda direita apareça */
             }
         }
     </style>
@@ -443,18 +443,18 @@
             } else {
                 let totalAlunosMes = 0;
 
-                // Tabela estruturada com table-layout fixo e larguras em porcentagem rigorosamente iguais para th e td
+                // Tabela estruturada com larguras somando 100% exatos e margens seguras
                 let htmlTabela = `
                     <h4 style="margin-top: 0; color: #333; margin-bottom: 12px; font-size: 15px;">Relatório de Ocupação - ${formatarMesAnoVisual(mesAnoSelecionado)} (${listaOcupacoesMes.length} registro(s) em ordem cronológica)</h4>
                     <table style="width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed;">
                         <thead>
                             <tr style="background: #f1f3f5; border-bottom: 2px solid #ccc; text-align: left;">
-                                <th style="padding: 10px; border: 1px solid #ddd; width: 16%;">Sala</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; width: 24%;">Curso Realizado</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; width: 22%;">Instituição</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; width: 14%; text-align: center;">Início</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; width: 14%; text-align: center;">Término</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; width: 10%; text-align: center;">Alunos</th>
+                                <th style="padding: 10px 5px; border: 1px solid #ddd; width: 16%;">Sala</th>
+                                <th style="padding: 10px 5px; border: 1px solid #ddd; width: 25%;">Curso Realizado</th>
+                                <th style="padding: 10px 5px; border: 1px solid #ddd; width: 24%;">Instituição</th>
+                                <th style="padding: 10px 5px; border: 1px solid #ddd; width: 13%; text-align: center;">Início</th>
+                                <th style="padding: 10px 5px; border: 1px solid #ddd; width: 13%; text-align: center;">Término</th>
+                                <th style="padding: 10px 5px; border: 1px solid #ddd; width: 9%; text-align: center;">Alunos</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -464,12 +464,12 @@
                     totalAlunosMes += item.alunos;
                     htmlTabela += `
                         <tr style="border-bottom: 1px solid #eee;">
-                            <td style="padding: 9px; border: 1px solid #ddd; width: 16%; word-break: break-word;"><strong>${item.salaNome}</strong></td>
-                            <td style="padding: 9px; border: 1px solid #ddd; width: 24%; word-break: break-word;">${item.curso}</td>
-                            <td style="padding: 9px; border: 1px solid #ddd; width: 22%; word-break: break-word;">${item.instituicao}</td>
-                            <td style="padding: 9px; border: 1px solid #ddd; width: 14%; text-align: center; white-space: nowrap;">${formatarData(item.inicio)}</td>
-                            <td style="padding: 9px; border: 1px solid #ddd; width: 14%; text-align: center; white-space: nowrap;">${formatarData(item.fim)}</td>
-                            <td style="padding: 9px; border: 1px solid #ddd; width: 10%; text-align: center;">${item.alunos}</td>
+                            <td style="padding: 8px 5px; border: 1px solid #ddd; width: 16%; word-break: break-word;"><strong>${item.salaNome}</strong></td>
+                            <td style="padding: 8px 5px; border: 1px solid #ddd; width: 25%; word-break: break-word;">${item.curso}</td>
+                            <td style="padding: 8px 5px; border: 1px solid #ddd; width: 24%; word-break: break-word;">${item.instituicao}</td>
+                            <td style="padding: 8px 5px; border: 1px solid #ddd; width: 13%; text-align: center; white-space: nowrap;">${formatarData(item.inicio)}</td>
+                            <td style="padding: 8px 5px; border: 1px solid #ddd; width: 13%; text-align: center; white-space: nowrap;">${formatarData(item.fim)}</td>
+                            <td style="padding: 8px 5px; border: 1px solid #ddd; width: 9%; text-align: center;">${item.alunos}</td>
                         </tr>
                     `;
                 });
@@ -479,8 +479,8 @@
                         </tbody>
                         <tfoot>
                             <tr style="background: #e9ecef; font-weight: bold;">
-                                <td colspan="5" style="padding: 10px; border: 1px solid #ddd; text-align: right;">TOTAL DE ALUNOS ATENDIDOS NO MÊS:</td>
-                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center; color: #003366; font-size: 15px;">${totalAlunosMes}</td>
+                                <td colspan="5" style="padding: 9px 5px; border: 1px solid #ddd; text-align: right;">TOTAL DE ALUNOS ATENDIDOS NO MÊS:</td>
+                                <td style="padding: 9px 5px; border: 1px solid #ddd; text-align: center; color: #003366; font-size: 15px;">${totalAlunosMes}</td>
                             </tr>
                         </tfoot>
                     </table>
