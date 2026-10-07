@@ -72,10 +72,10 @@
 
             <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
 
-            <!-- SECAO DE RELATÓRIO MENSAL (NOVO) -->
+            <!-- SECAO DE RELATÓRIO MENSAL CRONOLÓGICO -->
             <div style="margin-bottom: 30px; background: #eef2f7; padding: 20px; border-radius: 8px; border: 1px solid #d1d9e0;">
-                <h3>📊 Relatório de Ocupação por Mês</h3>
-                <p>Selecione o mês desejado para consultar todas as programações e cursos previstos no período:</p>
+                <h3>📊 Relatório de Ocupação por Mês (Ordem Cronológica)</h3>
+                <p>Selecione o mês desejado para consultar a programação em ordem de início:</p>
                 
                 <div style="display: flex; gap: 15px; align-items: flex-end; margin-bottom: 15px;">
                     <div style="flex: 1;">
@@ -228,7 +228,7 @@
                     return;
                 }
 
-                dadosGlobaisCache = dados; // Guarda cache para o relatório mensal
+                dadosGlobaisCache = dados;
                 const salas = dados.salas || {};
                 const ocupacoes = dados.ocupacoes || {};
                 const cursos = dados.cursos || {};
@@ -236,7 +236,6 @@
                 
                 atualizarInterfaceAdmin(salas, ocupacoes, cursos, instituicoes);
                 
-                // Se já houver um mês selecionado, atualiza o relatório automaticamente
                 const mesInput = document.getElementById("filtro-mes-ano").value;
                 if (mesInput) {
                     gerarRelatorioMensal();
@@ -288,7 +287,7 @@
                             <h4 style="margin: 0 0 5px 0; color: #721c24;">🏫 ${s.nome} (${s.bloco})</h4>
                             <p style="margin: 3px 0;"><strong>Curso Realizado:</strong> ${ocupacao.curso}</p>
                             <p style="margin: 3px 0;"><strong>Instituição Promotora:</strong> ${ocupacao.instituicao || 'Não informada'}</p>
-                            <p style="margin: 3px 0;"><strong>Turno:</strong> ${ocupacao.turno || 'N/A'} | <strong>Alunos:</strong> ${ocupacao.alunos || 'N/A'}</p>
+                            <p style="margin: 3px 0;"><strong>Turno:</strong> ${ocupacao.turno \vert{}\vert{} 'N/A'} \vert{} <strong>Alunos:</strong>${ocupacao.alunos || 'N/A'}</p>
                             <p style="margin: 3px 0; color: #0056b3;"><strong>📅 Data de Início:</strong> ${formatarData(ocupacao.inicio)} | <strong>Data de Término:</strong> ${formatarData(ocupacao.fim)}</p>
                             <p style="margin: 3px 0;"><strong>Contato:</strong> ${ocupacao.telefone}</p>
                             <button type="button" onclick="liberarSalaNuvem('${id}')" style="background: #ffc107; color: #000; border: none; padding: 4px 10px; border-radius: 3px; cursor: pointer; margin-top: 8px; font-weight: bold;">🔓 Liberar Sala</button>
@@ -347,158 +346,34 @@
             const ocupacoes = dadosGlobaisCache.ocupacoes || {};
             const idsSalas = Object.keys(ocupacoes);
 
-            let htmlOcupacoesMes = "";
-            let totalEncontradas = 0;
+            let listaOcupacoesMes = [];
 
             idsSalas.forEach(salaId => {
                 const oc = ocupacoes[salaId];
                 const sala = salas[salaId] || { nome: "Sala Removida", bloco: "N/A" };
 
                 if (oc && oc.inicio && oc.fim) {
-                    // Verifica se a data de início ou término pertence ao mês selecionado ou se o mês está no meio do período
-                    const mesInicio = oc.inicio.substring(0, 7); // "AAAA-MM"
-                    const mesFim = oc.fim.substring(0, 7);       // "AAAA-MM"
+                    const mesInicio = oc.inicio.substring(0, 7);
+                    const mesFim = oc.fim.substring(0, 7);
 
                     if (mesInicio <= mesAnoSelecionado && mesFim >= mesAnoSelecionado) {
-                        totalEncontradas++;
-                        htmlOcupacoesMes += `
-                            <div style="border-bottom: 1px solid #eee; padding: 10px 0;">
-                                <strong style="color: var(--primary-color);">🏫 ${sala.nome} (${sala.bloco})</strong><br>
-                                <strong>Curso:</strong> ${oc.curso} | <strong>Instituição:</strong> ${oc.instituicao || 'Não informada'}<br>
-                                <strong>Turno:</strong> ${oc.turno} | <strong>Alunos:</strong> ${oc.alunos} | <strong>Contato:</strong> ${oc.telefone}<br>
-                                <span style="color: #555; font-size: 13px;">📅 Período: ${formatarData(oc.inicio)} até ${formatarData(oc.fim)}</span>
-                            </div>
-                        `;
+                        listaOcupacoesMes.push({
+                            salaNome: `${sala.nome} (${sala.bloco})`,
+                            curso: oc.curso,
+                            instituicao: oc.instituicao || 'Não informada',
+                            inicio: oc.inicio,
+                            fim: oc.fim,
+                            alunos: oc.alunos || 'N/A'
+                        });
                     }
                 }
             });
 
-            if (totalEncontradas === 0) {
+            // Ordena em ordem cronológica (pela data de início)
+            listaOcupacoesMes.sort((a, b) => a.inicio.localeCompare(b.inicio));
+
+            if (listaOcupacoesMes.length === 0) {
                 resultadoDiv.innerHTML = `<p style="color: #d9534f; margin: 0;">Nenhum curso ou ocupação registrada para o mês selecionado (${formatarMesAnoVisual(mesAnoSelecionado)}).</p>`;
             } else {
-                resultadoDiv.innerHTML = `
-                    <h4 style="margin-top: 0; color: #333;">Relatório de Ocupação - ${formatarMesAnoVisual(mesAnoSelecionado)} (${totalEncontradas} sala(s) ocupada(s))</h4>
-                    ${htmlOcupacoesMes}
-                `;
-            }
-        }
-
-        function formatarMesAnoVisual(anoMesStr) {
-            const partes = anoMesStr.split("-");
-            if (partes.length < 2) return anoMesStr;
-            const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-            return `${meses[parseInt(partes[1]) - 1]} de ${partes[0]}`;
-        }
-
-        function formatarData(dataIso) {
-            if (!dataIso) return "Não informada";
-            const partes = dataIso.split("-");
-            if (partes.length < 3) return dataIso;
-            return `${partes[2]}/${partes[1]}/${partes[0]}`;
-        }
-
-        function preencherCurso() {
-            const sel = document.getElementById("select-curso-cadastrado").value;
-            if (sel) document.getElementById("input-curso-nome").value = sel;
-        }
-
-        function preencherInstituicao() {
-            const sel = document.getElementById("select-instituicao-cadastrada").value;
-            if (sel) document.getElementById("input-instituicao-nome").value = sel;
-        }
-
-        function cadastrarSalaNuvem() {
-            const nome = document.getElementById("nova-sala-nome").value.trim();
-            const bloco = document.getElementById("nova-sala-bloco").value.trim();
-            const x = parseFloat(document.getElementById("nova-sala-x").value);
-            const y = parseFloat(document.getElementById("nova-sala-y").value);
-
-            if (!nome || !bloco || isNaN(x) || isNaN(y)) {
-                alert("Preencha todos os campos da sala corretamente.");
-                return;
-            }
-
-            db.ref('salas').push({ nome, bloco, x, y }, (err) => {
-                if (!err) {
-                    alert("Sala cadastrada!");
-                    document.getElementById("nova-sala-nome").value = "";
-                    document.getElementById("nova-sala-bloco").value = "";
-                    document.getElementById("nova-sala-x").value = "";
-                    document.getElementById("nova-sala-y").value = "";
-                }
-            });
-        }
-
-        function removerSalaNuvem(id) {
-            if (!confirm("Excluir esta sala permanentemente?")) return;
-            db.ref('salas/' + id).remove();
-            db.ref('ocupacoes/' + id).remove();
-        }
-
-        function liberarSalaNuvem(id) {
-            if (!confirm("Deseja liberar esta sala (remover a ocupação atual)?")) return;
-            db.ref('ocupacoes/' + id).remove();
-            alert("Sala liberada com sucesso!");
-        }
-
-        function cadastrarCursoNuvem() {
-            const val = document.getElementById("novo-curso-input").value.trim();
-            if (!val) { alert("Digite o nome do curso."); return; }
-            db.ref('cursos').push(val, (err) => {
-                if (!err) document.getElementById("novo-curso-input").value = "";
-            });
-        }
-
-        function removerCursoNuvem(key) {
-            db.ref('cursos/' + key).remove();
-        }
-
-        function cadastrarInstituicaoNuvem() {
-            const val = document.getElementById("nova-instituicao-input").value.trim();
-            if (!val) { alert("Digite o nome da instituição."); return; }
-            db.ref('instituicoes').push(val, (err) => {
-                if (!err) document.getElementById("nova-instituicao-input").value = "";
-            });
-        }
-
-        function removerInstituicaoNuvem(key) {
-            db.ref('instituicoes/' + key).remove();
-        }
-
-        function salvarOcupacaoNuvem() {
-            const salaId = document.getElementById("select-sala").value;
-            const instituicao = document.getElementById("input-instituicao-nome").value.trim();
-            const curso = document.getElementById("input-curso-nome").value.trim();
-            const turno = document.getElementById("select-turno").value;
-            const alunos = document.getElementById("input-alunos").value.trim();
-            const inicio = document.getElementById("data-inicio").value;
-            const fim = document.getElementById("data-fim").value;
-            const telefone = document.getElementById("telefone-contato").value.trim();
-
-            if (!salaId) {
-                alert("Por favor, selecione uma sala.");
-                return;
-            }
-            if (!curso || !turno || !alunos || !inicio || !fim || !telefone) {
-                alert("Preencha todos os campos obrigatórios da ocupação.");
-                return;
-            }
-
-            db.ref('ocupacoes/' + salaId).set({
-                instituicao, curso, turno, alunos, inicio, fim, telefone
-            }, (error) => {
-                if (!error) {
-                    alert("Ocupação salva na nuvem com sucesso!");
-                    document.getElementById("input-instituicao-nome").value = "";
-                    document.getElementById("input-curso-nome").value = "";
-                    document.getElementById("select-turno").value = "";
-                    document.getElementById("input-alunos").value = "";
-                    document.getElementById("data-inicio").value = "";
-                    document.getElementById("data-fim").value = "";
-                    document.getElementById("telefone-contato").value = "";
-                }
-            });
-        }
-    </script>
-</body>
-</html>
+                let htmlTabela = `
+                    <h4 style="margin-top: 0; color: #333;">Relatório de Ocupação - ${formatarMesAnoVisual(mesAnoSelecion
