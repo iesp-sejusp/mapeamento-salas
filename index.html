@@ -54,9 +54,9 @@
             margin-bottom: 20px;
             border-radius: 6px;
             text-align: center;
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
         }
         
         /* Contêiner da Planta Baixa */
@@ -142,13 +142,24 @@
             margin-bottom: 12px !important;
             border-radius: 6px !important;
         }
+        .btn-atualizar {
+            background: #003366;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .btn-atualizar:hover { background: #002244; }
     </style>
 
     <!-- Firebase SDKs Compat -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
-<body onload="iniciarMapaOficial()">
+<body onload="carregarMapaEDados()">
 
     <div class="wrapper">
         <header>
@@ -162,9 +173,12 @@
 
         <div class="container">
             <h2>Planta Baixa e Localização das Salas</h2>
-            <p>Consulte abaixo o status em tempo real, turnos e ocupações das salas sincronizadas na nuvem do IESP/CBMAP.</p>
+            <p>Consulte abaixo o status em tempo real, turnos e ocupações das salas sincronizadas na nuvem do IESP/CBMAP[cite: 1].</p>
 
-            <div id="status-conexao">🔄 Sincronizando com a nuvem...</div>
+            <div id="status-conexao">🔄 Conectando ao banco de dados na nuvem...</div>
+            <div style="text-align: right;">
+                <button class="btn-atualizar" onclick="carregarMapaEDados()">🔄 Atualizar Dados</button>
+            </div>
 
             <!-- Visualização Gráfica sobre a Planta Baixa -->
             <div id="mapa-desktop-view">
@@ -175,7 +189,7 @@
                 </div>
             </div>
 
-            <!-- Visualização em Lista / Cards (Ideal para dispositivos móveis) -->
+            <!-- Visualização em Lista / Cards -->
             <div id="lista-mobile-view" style="margin-top: 35px;">
                 <h3 style="margin-top: 0; font-size: 18px; color: #003366;">Status Detalhado das Salas</h3>
                 <div id="lista-mobile-container"></div>
@@ -183,7 +197,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT DE SINCRONIZAÇÃO E RENDERIZAÇÃO -->
+    <!-- SCRIPT DE CARREGAMENTO DIRETO -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
@@ -201,30 +215,39 @@
         }
         const db = firebase.database();
 
-        function iniciarMapaOficial() {
-            db.ref('/').on('value', (snapshot) => {
+        function carregarMapaEDados() {
+            const statusDiv = document.getElementById("status-conexao");
+            statusDiv.style.background = "#fff3cd";
+            statusDiv.style.color = "#856404";
+            statusDiv.style.borderColor = "#ffeeba";
+            statusDiv.innerHTML = "🔄 Buscando dados atualizados da nuvem...";
+
+            db.ref('/').once('value').then((snapshot) => {
                 const dados = snapshot.val() || {};
                 const salas = dados.salas || {};
                 const ocupacoes = dados.ocupacoes || {};
 
-                document.getElementById("status-conexao").innerHTML = "✅ Conectado com sucesso à nuvem! Dados sincronizados em tempo real.";
+                statusDiv.style.background = "#d4edda";
+                statusDiv.style.color = "#155724";
+                statusDiv.style.borderColor = "#c3e6cb";
+                statusDiv.innerHTML = "✅ Dados sincronizados com sucesso da nuvem!";
                 
-                renderizarMapa(salas, ocupacoes);
-            }, (error) => {
-                const statusDiv = document.getElementById("status-conexao");
+                renderizarTudo(salas, ocupacoes);
+            }).catch((error) => {
                 statusDiv.style.background = "#f8d7da";
                 statusDiv.style.color = "#721c24";
-                statusDiv.innerHTML = "❌ Erro ao conectar: " + error.message;
+                statusDiv.style.borderColor = "#f5c6cb";
+                statusDiv.innerHTML = "❌ Erro ao buscar dados: " + error.message;
             });
         }
 
-        function renderizarMapa(salasObj, ocupacoesObj) {
+        function renderizarTudo(salasObj, ocupacoesObj) {
             const containerDesktop = document.getElementById("mapa-container");
             const containerMobile = document.getElementById("lista-mobile-container");
             
             const idsSalas = Object.keys(salasObj);
 
-            // 1. Renderização Gráfica sobre a Planta Baixa
+            // 1. Renderização sobre a Planta Baixa
             if (containerDesktop) {
                 containerDesktop.innerHTML = "";
 
@@ -238,7 +261,7 @@
                     img.onerror = function() {
                         containerDesktop.innerHTML = `
                             <div style="padding: 20px; background: #fff3f3; color: #d9534f; border: 1px solid #f5c6cb; text-align: center; border-radius: 6px;">
-                                ⚠️ Aviso: A imagem <strong>planta-baixa.jpg</strong> não foi encontrada na mesma pasta do projeto. Os cards abaixo continuam atualizados.
+                                ⚠️ Aviso: A imagem <strong>planta-baixa.jpg</strong> não foi encontrada na mesma pasta do projeto. Verifique o nome do arquivo.
                             </div>
                         `;
                     };
@@ -248,7 +271,6 @@
                     idsSalas.forEach(id => {
                         const sala = salasObj[id];
                         
-                        // Busca ocupação correspondente
                         let ocupacaoEncontrada = null;
                         Object.keys(ocupacoesObj).forEach(ocKey => {
                             const oc = ocupacoesObj[ocKey];
@@ -284,7 +306,7 @@
                 }
             }
 
-            // 2. Renderização em Lista / Cards (Mobile e Visão Geral)
+            // 2. Renderização em Lista / Cards
             if (containerMobile) {
                 containerMobile.innerHTML = "";
                 if (idsSalas.length === 0) {
@@ -309,11 +331,11 @@
                         
                         card.innerHTML = `
                             <h4 style="margin: 0 0 6px 0; color: #003366; font-size: 16px;">🏫 Sala ${sala.nome} (Bloco ${sala.bloco})</h4>
-                            <p style="margin: 4px 0;"><strong>Status:</strong> ${isOcupada ? '<span style="color:#dc3545; font-weight:bold;'>🔴 Ocupada</span>' : '<span style="color:#28a745; font-weight:bold;'>🟢 Disponível (Livre)</span>'}</p>
+                            <p style="margin: 4px 0;"><strong>Status:</strong> ${isOcupada ? '<span style="color:#dc3545; font-weight:bold;">🔴 Ocupada</span>' : '<span style="color:#28a745; font-weight:bold;">🟢 Disponível (Livre)</span>'}</p>
                             ${isOcupada ? `
                                 <p style="margin: 4px 0;"><strong>Curso:</strong> ${ocupacaoEncontrada.curso}</p>
                                 <p style="margin: 4px 0;"><strong>Instituição:</strong> ${ocupacaoEncontrada.instituicao || 'Não informada'}</p>
-                                <p style="margin: 4px 0;"><strong>Turno:</strong> ${ocupacaoEncontrada.turno \vert{}\vert{} 'N/A'} \vert{} <strong>Alunos:</strong>${ocupacaoEncontrada.alunos || 'N/A'}</p>
+                                <p style="margin: 4px 0;"><strong>Turno:</strong> ${ocupacaoEncontrada.turno \vert{}\vert{} 'N/A'} \vert{} <strong>Alunos:</strong>${ocupacaoEnkolunos || ocupacaoEncontrada.alunos || 'N/A'}</p>
                                 <p style="margin: 4px 0; color: #0056b3;"><strong>Período:</strong> ${formatarData(ocupacaoEncontrada.inicio)} até ${formatarData(ocupacaoEncontrada.fim)}</p>
                                 <p style="margin: 4px 0;"><strong>Contato:</strong> ${ocupacaoEncontrada.telefone || 'N/A'}</p>
                             ` : `<p style="margin: 4px 0; color: #666; font-style: italic;">Sala livre para agendamento de novos treinamentos.</p>`}
