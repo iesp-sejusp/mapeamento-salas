@@ -1,63 +1,64 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teste de Conexão - Firebase</title>
-    
-    <!-- Firebase SDKs Compat -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-</head>
-<body style="font-family: Arial, sans-serif; padding: 40px; background: #eef2f7; text-align: center;">
+✅ SUCESSO TOTAL!
 
-    <div style="max-width: 500px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-        <h2 style="color: #003366; margin-top: 0;">Teste de Conexão do Sistema</h2>
-        <p>Clique no botão abaixo para testar a comunicação com a nuvem:</p>
-        
-        <button onclick="testarConexaoDireta()" style="background: #003366; color: white; border: none; padding: 15px 25px; font-size: 16px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-            ⚡ TESTAR CONEXÃO AGORA
-        </button>
-
-        <div id="resultado-teste" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; text-align: left; word-break: break-all;">
-            Aguardando clique...
-        </div>
-    </div>
-
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
-            authDomain: "salas-iesp.firebaseapp.com",
-            databaseURL: "https://salas-iesp-default-rtdb.firebaseio.com",
-            projectId: "salas-iesp",
-            storageBucket: "salas-iesp.firebasestorage.app",
-            messagingSenderId: "456076383863",
-            appId: "1:456076383863:web:8edb172ae98c3be71f1872",
-            measurementId: "G-4KG8K3ZQK0"
-        };
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const db = firebase.database();
-
-        function testarConexaoDireta() {
-            const caixa = document.getElementById("resultado-teste");
-            caixa.style.background = "#fff3cd";
-            caixa.innerHTML = "🔄 Conectando com a nuvem do Firebase...";
-
-            db.ref('/').once('value')
-                .then((snapshot) => {
-                    const dados = snapshot.val();
-                    caixa.style.background = "#d4edda";
-                    caixa.innerHTML = "✅ CONEXÃO BEM-SUCEDIDA!<br><br>Dados recebidos:<br>" + JSON.stringify(dados, null, 2);
-                })
-                .catch((erro) => {
-                    caixa.style.background = "#f8d7da";
-                    caixa.innerHTML = "❌ ERRO NA CONEXÃO:<br>" + erro.message;
-                });
-        }
-    </script>
-
-</body>
-</html>
+Dados recebidos da nuvem:
+{
+  "cursos": {
+    "-P3IxQfVnd5uiiR2eUBh": "glock",
+    "-P3J-D3Yp6zZLQW4Eab_": "APH",
+    "-P3JB_C_r61FOJ8IIoiF": "CURSO DE PILOTO DE AERONAVES REMOTAMENTE PILOTADAS"
+  },
+  "instituicoes": {
+    "-P3IxS5hsH_iPOo0S8wq": "Cbmap",
+    "-P3J-Et-N4TLkkEykGmw": "PM",
+    "-P3JBaa7kYhrvpkUjXob": "SEJUSP"
+  },
+  "ocupacoes": {
+    "-P3IwKvHH_E2eCs7010m": {
+      "alunos": "44",
+      "curso": "Glock",
+      "fim": "2026-10-09",
+      "inicio": "2026-10-07",
+      "instituicao": "Cbmap",
+      "telefone": "96 991040404",
+      "turno": "Manhã"
+    },
+    "-P3J-AVFij6o3tmvBTBG": {
+      "alunos": "40",
+      "curso": "APH",
+      "fim": "2026-10-23",
+      "inicio": "2026-10-21",
+      "instituicao": "PM",
+      "telefone": "96991111111",
+      "turno": "Integral"
+    },
+    "-P3JBS8LKmVhuj5OHA1G": {
+      "alunos": "30",
+      "curso": "CURSO DE PILOTO DE AERONAVES REMOTAMENTE PILOTADAS",
+      "fim": "2026-10-31",
+      "inicio": "2026-10-28",
+      "instituicao": "SEJUSP",
+      "telefone": "96991111111",
+      "turno": "Manhã e Tarde"
+    }
+  },
+  "salas": {
+    "-P3IwKvHH_E2eCs7010m": {
+      "bloco": "B",
+      "nome": "B5",
+      "x": 50,
+      "y": 50
+    },
+    "-P3J-AVFij6o3tmvBTBG": {
+      "bloco": "C",
+      "nome": "C1",
+      "x": 60,
+      "y": 80
+    },
+    "-P3JBS8LKmVhuj5OHA1G": {
+      "bloco": "E",
+      "nome": "E1",
+      "x": 100,
+      "y": 50
+    }
+  }
+}
