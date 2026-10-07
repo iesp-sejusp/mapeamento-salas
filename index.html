@@ -30,15 +30,15 @@
             <!-- Visualização para Computadores (Mapa com marcadores) -->
             <div id="mapa-desktop-view">
                 <div id="mapa-container"></div>
-                <div class="legenda-planta">
+                <div class="legenda-planta" style="margin-top: 15px;">
                     <div class="legenda-item"><span class="bola-status livre"></span> Disponível</div>
                     <div class="legenda-item"><span class="bola-status ocupada"></span> Ocupada</div>
                 </div>
             </div>
 
-            <!-- Visualização para Celulares (Cards detalhados) -->
-            <div id="lista-mobile-view">
-                <h3 style="margin-top: 0; font-size: 18px; color: var(--primary-color);">Status das Salas (Versão Mobile)</h3>
+            <!-- Visualização para Celulares e Fallback -->
+            <div id="lista-mobile-view" style="margin-top: 30px;">
+                <h3 style="margin-top: 0; font-size: 18px; color: var(--primary-color);">Status Geral das Salas</h3>
                 <div id="lista-mobile-container"></div>
             </div>
         </div>
@@ -76,7 +76,7 @@
             
             const idsSalas = Object.keys(salasObj);
 
-            // 1. Renderização Desktop
+            // 1. Renderização Desktop (Planta com Marcadores + Alerta se a imagem faltar)
             if (containerDesktop) {
                 containerDesktop.innerHTML = "";
 
@@ -90,7 +90,7 @@
                     imgContainer.classList.add("planta-imagem-container");
                     imgContainer.style.position = "relative";
                     imgContainer.style.display = "inline-block";
-                    imgContainer.style.maxWidth = "100%";
+                    imgContainer.style.width = "100%";
 
                     const img = document.createElement("img");
                     img.src = "planta-baixa.jpg";
@@ -100,13 +100,12 @@
                     img.style.display = "block";
                     img.style.objectFit = "contain";
 
+                    // Se a imagem falhar, mostra o aviso mas continua exibindo os dados abaixo normalmente
                     img.onerror = function() {
-                        imgContainer.innerHTML = `
-                            <div style="padding: 40px; background: #ffe6e6; color: #d9534f; border: 2px dashed #d9534f; text-align: center; border-radius: 8px;">
-                                <h3 style="margin: 0 0 10px 0;">⚠️ Imagem "planta-baixa.jpg" não encontrada!</h3>
-                                <p style="margin: 0; font-size: 14px;">Coloque o arquivo da imagem na mesma pasta do <strong>index.html</strong>.</p>
-                            </div>
-                        `;
+                        const aviso = document.createElement("div");
+                        aviso.style.cssText = "padding: 20px; background: #fff3f3; color: #d9534f; border: 1px solid #f5c6cb; text-align: center; border-radius: 6px; margin-bottom: 15px;";
+                        aviso.innerHTML = `<strong>⚠️ Aviso:</strong> A imagem <em>planta-baixa.jpg</em> não foi encontrada na pasta. Os status abaixo continuam atualizados em tempo real.`;
+                        containerDesktop.prepend(aviso);
                     };
 
                     imgContainer.appendChild(img);
@@ -142,7 +141,7 @@
                 }
             }
 
-            // 2. Renderização Mobile
+            // 2. Renderização da Lista de Cards (Garante visualização imediata)
             if (containerMobile) {
                 containerMobile.innerHTML = "";
                 if (idsSalas.length === 0) {
@@ -153,21 +152,22 @@
                         const ocupacao = ocupacoesObj[id];
                         const isOcupada = ocupacao && ocupacao.curso;
 
-                        const cardMobile = document.createElement("div");
-                        cardMobile.className = `sala-card-mobile ${isOcupada ? 'ocupada' : 'livre'}`;
-                        cardMobile.innerHTML = `
-                            <h4>${sala.nome} (${sala.bloco})</h4>
-                            <p><strong>Status:</strong> ${isOcupada ? '<span style="color:var(--danger-color)">Ocupada</span>' : '<span style="color:var(--accent-color)">Disponível</span>'}</p>
+                        const card = document.createElement("div");
+                        card.className = `sala-card-mobile ${isOcupada ? 'ocupada' : 'livre'}`;
+                        card.style.cssText = "background: #fff; border: 1px solid #ddd; padding: 12px; margin-bottom: 10px; border-radius: 6px; border-left: 5px solid " + (isOcupada ? '#dc3545' : '#28a745') + ";";
+                        
+                        card.innerHTML = `
+                            <h4 style="margin: 0 0 5px 0; color: #333;">${sala.nome} (${sala.bloco})</h4>
+                            <p style="margin: 3px 0;"><strong>Status:</strong> ${isOcupada ? '<span style="color:#dc3545; font-weight:bold;">Ocupada</span>' : '<span style="color:#28a745; font-weight:bold;">Disponível</span>'}</p>
                             ${isOcupada ? `
-                                <p><strong>Instituição:</strong> ${ocupacao.instituicao || 'Não informada'}</p>
-                                <p><strong>Curso:</strong> ${ocupacao.curso}</p>
-                                <p><strong>Turno:</strong> ${ocupacao.turno || 'Não informado'}</p>
-                                <p><strong>Nº de Alunos:</strong> ${ocupacao.alunos || 'N/A'}</p>
-                                <p><strong>Período:</strong> ${formatarData(ocupacao.inicio)} até ${formatarData(ocupacao.fim)}</p>
-                                <p><strong>Contato:</strong> ${ocupacao.telefone}</p>
-                            ` : `<p>Sala livre para agendamento.</p>`}
+                                <p style="margin: 3px 0;"><strong>Instituição:</strong> ${ocupacao.instituicao || 'Não informada'}</p>
+                                <p style="margin: 3px 0;"><strong>Curso:</strong> ${ocupacao.curso}</p>
+                                <p style="margin: 3px 0;"><strong>Turno:</strong> ${ocupacao.turno \vert{}\vert{} 'Não informado'} \vert{} <strong>Alunos:</strong> ${ocupacao.alunos || 'N/A'}</p>
+                                <p style="margin: 3px 0; color: #0056b3;"><strong>Período:</strong> ${formatarData(ocupacao.inicio)} até ${formatarData(ocupacao.fim)}</p>
+                                <p style="margin: 3px 0;"><strong>Contato:</strong> ${ocupacao.telefone}</p>
+                            ` : `<p style="margin: 3px 0; color: #666; font-style: italic;">Sala livre para agendamento.</p>`}
                         `;
-                        containerMobile.appendChild(cardMobile);
+                        containerMobile.appendChild(card);
                     });
                 }
             }
