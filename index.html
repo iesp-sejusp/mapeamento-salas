@@ -103,7 +103,7 @@
         .sala-marcador.livre { background: #28a745; border: 2px solid #fff; }
         .sala-marcador.ocupada { background: #dc3545; border: 2px solid #fff; }
         
-        /* Tooltip ajustado para permitir quebra de linha em nomes longos */
+        /* Correção definitiva para o tooltip quebrar texto longo em várias linhas */
         .tooltip-info {
             display: none;
             position: absolute;
@@ -112,17 +112,17 @@
             transform: translateX(-50%);
             background: #212529;
             color: #fff;
-            padding: 12px;
+            padding: 10px 14px;
             border-radius: 6px;
-            width: 240px;
+            width: 260px; /* Largura controlada */
             font-size: 11px;
             line-height: 1.4;
             z-index: 30;
             text-align: left;
             pointer-events: none;
-            white-space: normal; /* Permite quebrar linha perfeitamente */
-            word-wrap: break-word; /* Evita estouro de palavras longas */
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            white-space: normal !important; /* Força quebra de linha */
+            word-break: break-word !important; /* Quebra palavras longas */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
         }
         .sala-marcador:hover .tooltip-info { display: block; }
         
@@ -210,7 +210,7 @@
                 
                 renderizar(salas, ocupacoes);
             }).catch(function(error) {
-                statusDiv.style.background = "#f8f7da";
+                statusDiv.style.background = "#f8d7da";
                 statusDiv.style.color = "#721c24";
                 statusDiv.innerHTML = "❌ Erro: " + error.message;
             });
@@ -259,7 +259,9 @@
                 var tooltipHtml = "<b>Sala " + sala.nome + " (" + sala.bloco + ")</b><br>" +
                                   "Status: " + (ocupada ? "Ocupada" : "Disponível");
                 if (ocupada) {
-                    tooltipHtml += "<br>Curso: " + ocupacao.curso + "<br>Alunos: " + (ocupacao.alunos || "N/A");
+                    // Usando divs internas para garantir o empacotamento correto do texto longo
+                    tooltipHtml += "<div style='margin-top:4px;'><strong>Curso:</strong> " + ocupacao.curso + "</div>" +
+                                   "<div><strong>Alunos:</strong> " + (ocupacao.alunos || "N/A") + "</div>";
                 }
 
                 marcador.innerHTML = "📍 " + sala.nome + "<div class='tooltip-info'>" + tooltipHtml + "</div>";
