@@ -3,29 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teste Direto - Firebase</title>
+    <title>Teste de Conexão - Firebase</title>
     
     <!-- Firebase SDKs Compat -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
-<body style="font-family: Arial, sans-serif; padding: 30px; background: #f4f6f9;">
+<body style="font-family: Arial, sans-serif; padding: 40px; background: #eef2f7; text-align: center;">
 
-    <div style="max-width: 600px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-        <h2 style="color: #003366; margin-top: 0;">Painel de Diagnóstico do Firebase</h2>
-        <p>Clique no botão abaixo para forçar a busca direta de dados na nuvem:</p>
+    <div style="max-width: 500px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        <h2 style="color: #003366; margin-top: 0;">Teste de Conexão do Sistema</h2>
+        <p>Clique no botão abaixo para testar a comunicação com a nuvem:</p>
         
-        <button onclick="buscarDadosAgora()" style="background: #28a745; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; font-weight: bold;">
-            🚀 CLIQUE AQUI PARA TESTAR A CONEXÃO
+        <button onclick="testarConexaoDireta()" style="background: #003366; color: white; border: none; padding: 15px 25px; font-size: 16px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+            ⚡ TESTAR CONEXÃO AGORA
         </button>
 
-        <div id="resultado" style="margin-top: 20px; padding: 15px; background: #e9ecef; border-radius: 5px; font-family: monospace; white-space: pre-wrap;">
+        <div id="resultado-teste" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; text-align: left; word-break: break-all;">
             Aguardando clique...
         </div>
     </div>
 
     <script>
-        // Configuração oficial do seu projeto
         const firebaseConfig = {
             apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
             authDomain: "salas-iesp.firebaseapp.com",
@@ -37,26 +36,25 @@
             measurementId: "G-4KG8K3ZQK0"
         };
 
-        // Inicializa se já não estiver instanciado
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.database();
 
-        function buscarDadosAgora() {
-            const caixaResultado = document.getElementById("resultado");
-            caixaResultado.style.background = "#fff3cd";
-            caixaResultado.innerHTML = "🔄 Conectando com a API do Firebase...";
+        function testarConexaoDireta() {
+            const caixa = document.getElementById("resultado-teste");
+            caixa.style.background = "#fff3cd";
+            caixa.innerHTML = "🔄 Conectando com a nuvem do Firebase...";
 
             db.ref('/').once('value')
                 .then((snapshot) => {
                     const dados = snapshot.val();
-                    caixaResultado.style.background = "#d4edda";
-                    caixaResultado.innerHTML = "✅ SUCESSO TOTAL!\n\nDados recebidos da nuvem:\n" + JSON.stringify(dados, null, 2);
+                    caixa.style.background = "#d4edda";
+                    caixa.innerHTML = "✅ CONEXÃO BEM-SUCEDIDA!<br><br>Dados recebidos:<br>" + JSON.stringify(dados, null, 2);
                 })
                 .catch((erro) => {
-                    caixaResultado.style.background = "#f8d7da";
-                    caixaResultado.innerHTML = "❌ ERRO NA REQUISIÇÃO:\n" + erro.message;
+                    caixa.style.background = "#f8d7da";
+                    caixa.innerHTML = "❌ ERRO NA CONEXÃO:<br>" + erro.message;
                 });
         }
     </script>
