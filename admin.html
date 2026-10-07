@@ -6,7 +6,7 @@
     <title>Painel Administrativo - Nuvem</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- CSS de Impressão Limpo e Alinhado -->
+    <!-- CSS de Impressão com Alinhamento Perfeito das Colunas -->
     <style>
         #area-impressao-oficial {
             display: none;
@@ -36,15 +36,18 @@
             #area-impressao-oficial table {
                 width: 100% !important;
                 border-collapse: collapse !important;
+                table-layout: fixed !important;
+            }
+            #area-impressao-oficial tr {
+                display: table-row !important;
             }
             #area-impressao-oficial th, #area-impressao-oficial td {
+                display: table-cell !important;
                 border: 1px solid #ddd !important;
-                padding: 10px !important;
-                font-size: 13px !important;
-                text-align: left !important;
-            }
-            #area-impressao-oficial th.text-center, #area-impressao-oficial td.text-center {
-                text-align: center !important;
+                padding: 9px 6px !important;
+                font-size: 12px !important;
+                word-wrap: break-word !important;
+                overflow: hidden !important;
             }
             @page {
                 size: portrait;
@@ -59,7 +62,7 @@
 </head>
 <body onload="iniciarPainel()">
 
-    <!-- ÁREA EXCLUSIVA PARA IMPRESSÃO OFICIAL (Apenas Logo e Título) -->
+    <!-- ÁREA EXCLUSIVA PARA IMPRESSÃO OFICIAL -->
     <div id="area-impressao-oficial">
         <div style="text-align: center; margin-bottom: 20px;">
             <img src="sua-logo.png" alt="Logo IESP" style="max-height: 70px; margin-bottom: 8px;" onerror="this.style.display='none'">
@@ -440,17 +443,18 @@
             } else {
                 let totalAlunosMes = 0;
 
+                // Tabela estruturada com table-layout fixo e larguras rigorosas e proporcionais para garantir o alinhamento
                 let htmlTabela = `
                     <h4 style="margin-top: 0; color: #333; margin-bottom: 12px; font-size: 15px;">Relatório de Ocupação - ${formatarMesAnoVisual(mesAnoSelecionado)} (${listaOcupacoesMes.length} registro(s) em ordem cronológica)</h4>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed;">
                         <thead>
                             <tr style="background: #f1f3f5; border-bottom: 2px solid #ccc; text-align: left;">
-                                <th style="padding: 10px; border: 1px solid #ddd;">Sala</th>
-                                <th style="padding: 10px; border: 1px solid #ddd;">Curso Realizado</th>
-                                <th style="padding: 10px; border: 1px solid #ddd;">Instituição</th>
-                                <th style="padding: 10px; border: 1px solid #ddd;">Início</th>
-                                <th style="padding: 10px; border: 1px solid #ddd;">Término</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Alunos</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; width: 16%;">Sala</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; width: 24%;">Curso Realizado</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; width: 22%;">Instituição</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; width: 14%; text-align: center;">Início</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; width: 14%; text-align: center;">Término</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; width: 10%; text-align: center;">Alunos</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -460,11 +464,11 @@
                     totalAlunosMes += item.alunos;
                     htmlTabela += `
                         <tr style="border-bottom: 1px solid #eee;">
-                            <td style="padding: 9px; border: 1px solid #ddd;"><strong>${item.salaNome}</strong></td>
-                            <td style="padding: 9px; border: 1px solid #ddd;">${item.curso}</td>
-                            <td style="padding: 9px; border: 1px solid #ddd;">${item.instituicao}</td>
-                            <td style="padding: 9px; border: 1px solid #ddd;">${formatarData(item.inicio)}</td>
-                            <td style="padding: 9px; border: 1px solid #ddd;">${formatarData(item.fim)}</td>
+                            <td style="padding: 9px; border: 1px solid #ddd; word-break: break-word;"><strong>${item.salaNome}</strong></td>
+                            <td style="padding: 9px; border: 1px solid #ddd; word-break: break-word;">${item.curso}</td>
+                            <td style="padding: 9px; border: 1px solid #ddd; word-break: break-word;">${item.instituicao}</td>
+                            <td style="padding: 9px; border: 1px solid #ddd; text-align: center; white-space: nowrap;">${formatarData(item.inicio)}</td>
+                            <td style="padding: 9px; border: 1px solid #ddd; text-align: center; white-space: nowrap;">${formatarData(item.fim)}</td>
                             <td style="padding: 9px; border: 1px solid #ddd; text-align: center;">${item.alunos}</td>
                         </tr>
                     `;
