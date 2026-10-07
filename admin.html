@@ -6,11 +6,63 @@
     <title>Painel Administrativo - Nuvem</title>
     <link rel="stylesheet" href="style.css">
     
+    <!-- CSS de Impressão Nativo (Garante página única e limpa sem folhas em branco) -->
+    <style>
+        /* Área de impressão oculta na tela normal */
+        #area-impressao-oficial {
+            display: none;
+        }
+
+        @media print {
+            /* Oculta tudo na página */
+            body * {
+                display: none !important;
+            }
+            /* Exibe apenas a nossa área de impressão oficial */
+            #area-impressao-oficial, #area-impressao-oficial * {
+                display: block !important;
+                visibility: visible !important;
+            }
+            #area-impressao-oficial {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white;
+                padding: 20px;
+            }
+            /* Força a tabela a se comportar perfeitamente */
+            #area-impressao-oficial table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+            }
+            #area-impressao-oficial th, #area-impressao-oficial td {
+                border: 1px solid #000 !important;
+                padding: 8px !important;
+                text-align: left !important;
+            }
+            @page {
+                size: portrait;
+                margin: 15mm;
+            }
+        }
+    </style>
+
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body onload="iniciarPainel()">
+
+    <!-- ÁREA EXCLUSIVA PARA IMPRESSÃO (Nativa e Limpa) -->
+    <div id="area-impressao-oficial">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h2 style="margin: 0; font-size: 18px; color: #000;">CORPO DE BOMBEIROS MILITAR DO AMAPÁ - CBMAP</h2>
+            <h3 style="margin: 5px 0 0 0; font-size: 14px; color: #333;">INSTITUTO DE SEGURANÇA PÚBLICA - IESP</h3>
+            <p id="titulo-relatorio-impresso" style="font-size: 14px; font-weight: bold; margin-top: 10px;"></p>
+        </div>
+        <div id="tabela-impressao-container"></div>
+    </div>
 
     <div class="wrapper">
         <header>
@@ -73,7 +125,7 @@
             <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
 
             <!-- SECAO DE RELATÓRIO MENSAL CRONOLÓGICO -->
-            <div id="secao-relatorio-mensal" style="margin-bottom: 30px; background: #eef2f7; padding: 20px; border-radius: 8px; border: 1px solid #d1d9e0;">
+            <div style="margin-bottom: 30px; background: #eef2f7; padding: 20px; border-radius: 8px; border: 1px solid #d1d9e0;">
                 <h3>📊 Relatório de Ocupação por Mês (Ordem Cronológica)</h3>
                 <p>Selecione o mês desejado para consultar a programação em ordem de início:</p>
                 
@@ -83,7 +135,7 @@
                         <input type="month" id="filtro-mes-ano" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" onchange="gerarRelatorioMensal()">
                     </div>
                     <div>
-                        <button type="button" class="btn-action" style="margin-top: 0; background: #28a745;" onclick="imprimirRelatorioLimpo()">🖨️ Imprimir Relatório</button>
+                        <button type="button" class="btn-action" style="margin-top: 0; background: #28a745;" onclick="window.print()">🖨️ Imprimir Relatório</button>
                     </div>
                 </div>
 
@@ -287,7 +339,7 @@
                             <h4 style="margin: 0 0 5px 0; color: #721c24;">🏫 ${s.nome} (${s.bloco})</h4>
                             <p style="margin: 3px 0;"><strong>Curso Realizado:</strong> ${ocupacao.curso}</p>
                             <p style="margin: 3px 0;"><strong>Instituição Promotora:</strong> ${ocupacao.instituicao || 'Não informada'}</p>
-                            <p style="margin: 3px 0;"><strong>Turno:</strong> ${ocupacao.turno \vert{}\vert{} 'N/A'} \vert{} <strong>Alunos:</strong>${ocupacao.alunos || 'N/A'}</p>
+                            <p style="margin: 3px 0;"><strong>Turno:</strong> ${ocupacao.turno || 'N/A'} | <strong>Alunos:</strong> ${ocupacao.alunos || 'N/A'}</p>
                             <p style="margin: 3px 0; color: #0056b3;"><strong>📅 Data de Início:</strong> ${formatarData(ocupacao.inicio)} | <strong>Data de Término:</strong> ${formatarData(ocupacao.fim)}</p>
                             <p style="margin: 3px 0;"><strong>Contato:</strong> ${ocupacao.telefone}</p>
                             <button type="button" onclick="liberarSalaNuvem('${id}')" style="background: #ffc107; color: #000; border: none; padding: 4px 10px; border-radius: 3px; cursor: pointer; margin-top: 8px; font-weight: bold;">🔓 Liberar Sala</button>
@@ -336,9 +388,13 @@
         function gerarRelatorioMensal() {
             const mesAnoSelecionado = document.getElementById("filtro-mes-ano").value;
             const resultadoDiv = document.getElementById("resultado-relatorio-mensal");
+            const tabelaImpressaoContainer = document.getElementById("tabela-impressao-container");
+            const tituloImpresso = document.getElementById("titulo-relatorio-impresso");
 
             if (!mesAnoSelecionado) {
                 resultadoDiv.innerHTML = `<p style="color: #666; margin: 0;">Selecione um mês acima para exibir o relatório correspondente.</p>`;
+                tabelaImpressaoContainer.innerHTML = "";
+                tituloImpresso.innerText = "";
                 return;
             }
 
@@ -372,4 +428,24 @@
             listaOcupacoesMes.sort((a, b) => a.inicio.localeCompare(b.inicio));
 
             if (listaOcupacoesMes.length === 0) {
-                resultadoDiv.innerHTML = `<p style="color: #d9534f; margin: 0;">Nenhum curso ou ocupação registrada para o mês selecion
+                resultadoDiv.innerHTML = `<p style="color: #d9534f; margin: 0;">Nenhum curso ou ocupação registrada para o mês selecionado (${formatarMesAnoVisual(mesAnoSelecionado)}).</p>`;
+                tabelaImpressaoContainer.innerHTML = "";
+                tituloImpresso.innerText = "";
+            } else {
+                let htmlTabela = `
+                    <h4 style="margin-top: 0; color: #333;">Relatório de Ocupação - ${formatarMesAnoVisual(mesAnoSelecionado)} (${listaOcupacoesMes.length} registro(s))</h4>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
+                        <thead>
+                            <tr style="background: #f1f3f5; border-bottom: 2px solid #ccc; text-align: left;">
+                                <th style="padding: 8px; border: 1px solid #ddd;">Sala</th>
+                                <th style="padding: 8px; border: 1px solid #ddd;">Curso Realizado</th>
+                                <th style="padding: 8px; border: 1px solid #ddd;">Instituição</th>
+                                <th style="padding: 8px; border: 1px solid #ddd;">Início</th>
+                                <th style="padding: 8px; border: 1px solid #ddd;">Término</th>
+                                <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">Alunos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                listaOcupacoesMes.
