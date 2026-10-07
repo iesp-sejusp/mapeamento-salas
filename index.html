@@ -39,7 +39,7 @@
         }
     </style>
 
-    <!-- Firebase SDKs Compat -->
+    <!-- Firebase SDKs Compat v9.23.0 -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
@@ -84,9 +84,17 @@
         </div>
     </div>
 
-    <!-- SCRIPT DE LEITURA DO MAPA -->
+    <!-- SCRIPT DE LEITURA DO MAPA OTIMIZADO PARA WEB/GITHUB -->
     <script>
         const statusDiv = document.getElementById("status-conexao");
+
+        // Timeout caso a nuvem demore mais de 5 segundos
+        let timerConexao = setTimeout(() => {
+            statusDiv.style.background = "#f8d7da";
+            statusDiv.style.color = "#721c24";
+            statusDiv.style.borderColor = "#f5c6cb";
+            statusDiv.innerHTML = "⚠️ A conexão demorou para responder. Verifique se o seu projeto do Firebase permite domínios externos (CORS) ou se o banco está ativo.";
+        }, 5000);
 
         try {
             const firebaseConfig = {
@@ -100,12 +108,15 @@
                 measurementId: "G-4KG8K3ZQK0"
             };
 
-            // Inicializa o app garantindo a URL do banco
-            const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
-            const db = firebase.database(app);
+            // Inicialização segura
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            const db = firebase.database();
 
-            // Escuta os dados da raiz
+            // Escuta os dados em tempo real
             db.ref('/').on('value', (snapshot) => {
+                clearTimeout(timerConexao);
                 const dados = snapshot.val() || {};
                 const salas = dados.salas || {};
                 const ocupacoes = dados.ocupacoes || {};
@@ -117,6 +128,7 @@
 
                 renderizarTudo(salas, ocupacoes);
             }, (error) => {
+                clearTimeout(timerConexao);
                 statusDiv.style.background = "#f8d7da";
                 statusDiv.style.color = "#721c24";
                 statusDiv.style.borderColor = "#f5c6cb";
@@ -124,6 +136,7 @@
             });
 
         } catch (e) {
+            clearTimeout(timerConexao);
             statusDiv.style.background = "#f8d7da";
             statusDiv.style.color = "#721c24";
             statusDiv.style.borderColor = "#f5c6cb";
