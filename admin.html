@@ -75,7 +75,7 @@
                 <div>
                     <h3>Cadastrar Instituição Promotora</h3>
                     <div style="display: flex; gap: 10px; margin-top: 10px;">
-                        <input type="text" id=" nova-instituicao-input" placeholder="Ex: CBMAP / IESP">
+                        <input type="text" id="nova-instituicao-input" placeholder="Ex: CBMAP / IESP">
                         <button type="button" class="btn-action" style="margin-top: 0; width: auto; white-space: nowrap;" onclick="cadastrarInstituicaoNuvem()">Adicionar Instituição</button>
                     </div>
                     <ul id="lista-instituicoes-ul" class="list-group" style="margin-top: 10px; max-height: 150px; overflow-y: auto;"></ul>
@@ -182,7 +182,18 @@
 
         function iniciarPainel() {
             db.ref('/').on('value', (snapshot) => {
-                const dados = snapshot.val() || {};
+                const dados = snapshot.val();
+                
+                // Se o banco estiver vazio, inicializa dados padrão
+                if (!dados) {
+                    const defaultSalas = {
+                        "s1": { nome: "Sala 101", bloco: "Bloco A", x: 20, y: 30 },
+                        "s2": { nome: "Sala 102", bloco: "Bloco A", x: 40, y: 30 }
+                    };
+                    db.ref('salas').set(defaultSalas);
+                    return;
+                }
+
                 const salas = dados.salas || {};
                 const ocupacoes = dados.ocupacoes || {};
                 const cursos = dados.cursos || {};
@@ -193,7 +204,7 @@
         }
 
         function atualizarInterfaceAdmin(salasObj, ocupacoesObj, cursosObj, instObj) {
-            // Select de Salas
+            // Select e Lista de Salas
             const selectSala = document.getElementById("select-sala");
             const listaSalasUl = document.getElementById("lista-salas-ul");
             if (selectSala) selectSala.innerHTML = `<option value="">-- Selecione a Sala --</option>`;
@@ -295,7 +306,7 @@
 
         function cadastrarCursoNuvem() {
             const val = document.getElementById("novo-curso-input").value.trim();
-            if (!val) return;
+            if (!val) { alert("Digite o nome do curso."); return; }
             db.ref('cursos').push(val, (err) => {
                 if (!err) document.getElementById("novo-curso-input").value = "";
             });
@@ -306,10 +317,10 @@
         }
 
         function cadastrarInstituicaoNuvem() {
-            const val = document.getElementById(" nova-instituicao-input").value.trim();
-            if (!val) return;
+            const val = document.getElementById("nova-instituicao-input").value.trim();
+            if (!val) { alert("Digite o nome da instituição."); return; }
             db.ref('instituicoes').push(val, (err) => {
-                if (!err) document.getElementById(" nova-instituicao-input").value = "";
+                if (!err) document.getElementById("nova-instituicao-input").value = "";
             });
         }
 
@@ -327,7 +338,11 @@
             const fim = document.getElementById("data-fim").value;
             const telefone = document.getElementById("telefone-contato").value.trim();
 
-            if (!salaId || !curso || !turno || !alunos || !inicio || !fim || !telefone) {
+            if (!salaId) {
+                alert("Por favor, selecione uma sala.");
+                return;
+            }
+            if (!curso || !turno || !alunos || !inicio || !fim || !telefone) {
                 alert("Preencha todos os campos obrigatórios da ocupação.");
                 return;
             }
