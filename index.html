@@ -7,9 +7,9 @@
     
     <style>
         body {
-            /* Imagem de fundo corrigida para 'seu-fundo.jpg' com escurecimento suave para legibilidade */
             background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('seu-fundo.jpg') no-repeat center center fixed;
             background-size: cover;
+            background-color: #002244; /* Cor de segurança caso a imagem demore ou falhe */
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
@@ -32,6 +32,8 @@
             border-bottom: 2px solid #003366;
             padding-bottom: 15px;
             margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         .logo-container {
             display: flex;
@@ -39,8 +41,13 @@
             gap: 15px;
         }
         .logo-container img {
-            height: 50px;
+            height: 60px;
+            max-width: 150px;
             object-fit: contain;
+            background: #fff;
+            padding: 4px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
         }
         h1 { color: #003366; font-size: 22px; margin: 0; }
         nav a {
