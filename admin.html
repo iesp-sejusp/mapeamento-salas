@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Área Administrativa - Gestão de Salas</title>
+    <title>Painel Administrativo - IESP / CBMAP</title>
     
     <style>
         body {
@@ -13,7 +13,7 @@
             padding: 20px;
         }
         .wrapper {
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
             background: #fff;
             padding: 30px;
@@ -115,6 +115,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
+            margin-bottom: 25px;
         }
         th, td {
             border: 1px solid #dee2e6;
@@ -123,6 +124,14 @@
             font-size: 14px;
         }
         th { background: #003366; color: white; }
+        .relatorio-card {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #003366;
+        }
     </style>
 
     <!-- Firebase SDKs Compat -->
@@ -135,7 +144,7 @@
     <div id="login-overlay">
         <div class="login-box">
             <h3 style="color: #003366; margin-top:0;">Área Restrita - IESP</h3>
-            <p style="font-size: 13px; color: #666;">Digite a senha administrativa (`sargento2026`):</p>
+            <p style="font-size: 13px; color: #666;">Digite a senha administrativa:</p>
             <input type="password" id="senha-admin" placeholder="Senha de acesso" onkeypress="if(event.key === 'Enter') validarSenha()">
             <button onclick="validarSenha()">Entrar no Painel</button>
             <p id="erro-senha" style="color: #dc3545; font-size: 12px; margin-top: 10px; display: none;">Senha incorreta!</p>
@@ -144,17 +153,17 @@
 
     <div class="wrapper" id="painel-conteudo" style="display: none;">
         <header>
-            <h1>Painel Administrativo - Gestão de Salas</h1>
+            <h1>Painel Administrativo - Gestão e Relatórios</h1>
             <a href="index.html" class="btn-voltar">Ver Mapa Público</a>
         </header>
 
-        <!-- Seção 1: Cadastrar Nova Sala -->
+        <!-- 1. CADASTRAR SALAS -->
         <div class="form-section">
-            <h3 style="margin-top:0; color:#003366;">Cadastrar Nova Sala (Sem limite)</h3>
+            <h3 style="margin-top:0; color:#003366;">1. Cadastrar Nova Sala (Ilimitado)</h3>
             <form id="form-sala" onsubmit="cadastrarSala(event)">
                 <div style="display: flex; gap: 15px;">
                     <div class="form-group" style="flex: 2;">
-                        <label>Nome da Sala (ex: B7, C2, E2):</label>
+                        <label>Nome da Sala:</label>
                         <input type="text" id="sala-nome" required placeholder="Ex: B7">
                     </div>
                     <div class="form-group" style="flex: 2;">
@@ -162,21 +171,46 @@
                         <input type="text" id="sala-bloco" required placeholder="Ex: B">
                     </div>
                     <div class="form-group" style="flex: 1;">
-                        <label>Pos X (% no mapa):</label>
+                        <label>Pos X (%):</label>
                         <input type="number" id="sala-x" value="50" required>
                     </div>
                     <div class="form-group" style="flex: 1;">
-                        <label>Pos Y (% no mapa):</label>
+                        <label>Pos Y (%):</label>
                         <input type="number" id="sala-y" value="50" required>
                     </div>
                 </div>
-                <button type="submit" class="btn-acao">➕ Salvar Nova Sala</button>
+                <button type="submit" class="btn-acao">➕ Salvar Sala</button>
             </form>
         </div>
 
-        <!-- Seção 2: Alocar Curso / Ocupar Sala -->
+        <!-- 2. CADASTRAR CURSOS E INSTITUIÇÕES -->
+        <div style="display: flex; gap: 20px;">
+            <div class="form-section" style="flex: 1;">
+                <h3 style="margin-top:0; color:#003366;">Cadastrar Novo Curso</h3>
+                <form id="form-curso" onsubmit="cadastrarCurso(event)">
+                    <div class="form-group">
+                        <label>Nome do Curso:</label>
+                        <input type="text" id="novo-curso" required placeholder="Ex: Atendimento Pré-Hospitalar">
+                    </div>
+                    <button type="submit" class="btn-acao">➕ Adicionar Curso</button>
+                </form>
+            </div>
+
+            <div class="form-section" style="flex: 1;">
+                <h3 style="margin-top:0; color:#003366;">Cadastrar Instituição</h3>
+                <form id="form-inst" onsubmit="cadastrarInstituicao(event)">
+                    <div class="form-group">
+                        <label>Nome da Instituição:</label>
+                        <input type="text" id="nova-inst" required placeholder="Ex: CBMAP / PM / SEJUSP">
+                    </div>
+                    <button type="submit" class="btn-acao">➕ Adicionar Instituição</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 3. ALOCAR CURSO EM SALA -->
         <div class="form-section">
-            <h3 style="margin-top:0; color:#003366;">Alocar Curso / Ocupação em Sala</h3>
+            <h3 style="margin-top:0; color:#003366;">2. Alocar Curso / Ocupar Sala</h3>
             <form id="form-ocupacao" onsubmit="alocarCurso(event)">
                 <div style="display: flex; gap: 15px;">
                     <div class="form-group" style="flex: 2;">
@@ -185,22 +219,31 @@
                             <option value="">Carregando salas...</option>
                         </select>
                     </div>
-                    <div class="form-group" style="flex: 3;">
-                        <label>Nome do Curso:</label>
-                        <input type="text" id="oc-curso" required placeholder="Ex: Curso de APH">
+                    <div class="form-group" style="flex: 2;">
+                        <label>Curso:</label>
+                        <select id="select-curso-alocacao" required>
+                            <option value="">Carregando cursos...</option>
+                        </select>
                     </div>
                     <div class="form-group" style="flex: 2;">
                         <label>Instituição:</label>
-                        <input type="text" id="oc-instituicao" required placeholder="Ex: CBMAP / PM">
+                        <select id="select-inst-alocacao" required>
+                            <option value="">Carregando instituições...</option>
+                        </select>
                     </div>
                 </div>
                 <div style="display: flex; gap: 15px;">
                     <div class="form-group" style="flex: 1;">
                         <label>Turno:</label>
-                        <input type="text" id="oc-turno" required placeholder="Ex: Manhã">
+                        <select id="oc-turno" required>
+                            <option value="Manhã">Manhã</option>
+                            <option value="Tarde">Tarde</option>
+                            <option value="Manhã e Tarde">Manhã e Tarde</option>
+                            <option value="Integral">Integral</option>
+                        </select>
                     </div>
                     <div class="form-group" style="flex: 1;">
-                        <label>Alunos:</label>
+                        <label>Nº de Alunos:</label>
                         <input type="number" id="oc-alunos" required placeholder="Ex: 35">
                     </div>
                     <div class="form-group" style="flex: 1;">
@@ -213,26 +256,52 @@
                     </div>
                     <div class="form-group" style="flex: 1;">
                         <label>Telefone:</label>
-                        <input type="text" id="oc-telefone" placeholder="Ex: (96) 9999-9999">
+                        <input type="text" id="oc-telefone" placeholder="Ex: 96 99999-9999">
                     </div>
                 </div>
-                <button type="submit" class="btn-acao">🔒 Ocupar / Alocar Sala</button>
+                <button type="submit" class="btn-acao">🔒 Ocupar Sala</button>
             </form>
         </div>
 
-        <!-- Seção 3: Gerenciamento Geral e Liberação -->
-        <h3>Gerenciamento e Liberação de Salas</h3>
+        <!-- 4. GERENCIAMENTO E LIBERAÇÃO -->
+        <h3>Gerenciamento de Salas Ocupadas</h3>
         <table>
             <thead>
                 <tr>
                     <th>Sala / Bloco</th>
-                    <th>Status Atual</th>
-                    <th>Curso / Ocupação Alocada</th>
+                    <th>Status</th>
+                    <th>Detalhes do Curso e Período</th>
                     <th>Ações</th>
                 </tr>
             </thead>
             <tbody id="tabela-gerenciamento">
-                <tr><td colspan="4" style="text-align:center;">Carregando dados...</td></tr>
+                <tr><td colspan="4" style="text-align:center;">Carregando...</td></tr>
+            </tbody>
+        </table>
+
+        <!-- 5. RELATÓRIO MENSAL CONSOLIDADO -->
+        <h3 style="margin-top: 40px; color: #003366;">📊 Relatório Mensal Consolidado de Cursos</h3>
+        <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 15px;">
+            <label style="margin:0;">Selecione o Mês / Ano:</label>
+            <input type="month" id="filtro-mes-ano" onchange="gerarRelatorioMensal()" style="width: 200px;">
+        </div>
+        
+        <div id="relatorio-resumo" class="relatorio-card">
+            Selecione um mês para visualizar o resumo consolidado.
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Curso</th>
+                    <th>Instituição</th>
+                    <th>Período</th>
+                    <th>Turno</th>
+                    <th>Alunos</th>
+                </tr>
+            </thead>
+            <tbody id="tabela-relatorio">
+                <tr><td colspan="5" style="text-align:center;">Nenhum período selecionado.</td></tr>
             </tbody>
         </table>
     </div>
@@ -272,118 +341,182 @@
         function carregarPainelAdmin() {
             db.ref('/').on('value', function(snapshot) {
                 dadosGlobais = snapshot.val() || {};
-                renderizarPainel(dadosGlobais.salas || {}, dadosGlobais.ocupacoes || {});
+                renderizarPainelCompleto(dadosGlobais);
             });
+
+            // Define o mês atual no filtro do relatório por padrão
+            const hoje = new Date();
+            const ano = hoje.getFullYear();
+            const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+            document.getElementById("filtro-mes-ano").value = `${ano}-${mes}`;
         }
 
-        // 1. Cadastrar nova sala sem limite (usando push)
-        function cadastrarSala(event) {
-            event.preventDefault();
-            var nome = document.getElementById("sala-nome").value;
-            var bloco = document.getElementById("sala-bloco").value;
-            var x = document.getElementById("sala-x").value;
-            var y = document.getElementById("sala-y").value;
-
+        // Funções de Cadastro
+        function cadastrarSala(e) {
+            e.preventDefault();
             db.ref('salas').push({
-                nome: nome,
-                bloco: bloco,
-                x: Number(x),
-                y: Number(y)
-            }).then(function() {
-                alert("Sala cadastrada com sucesso!");
+                nome: document.getElementById("sala-nome").value,
+                bloco: document.getElementById("sala-bloco").value,
+                x: Number(document.getElementById("sala-x").value),
+                y: Number(document.getElementById("sala-y").value)
+            }).then(() => {
+                alert("Sala cadastrada!");
                 document.getElementById("form-sala").reset();
-            }).catch(function(error) {
-                alert("Erro ao cadastrar sala: " + error.message);
             });
         }
 
-        // 2. Alocar curso em uma sala
-        function alocarCurso(event) {
-            event.preventDefault();
+        function cadastrarCurso(e) {
+            e.preventDefault();
+            db.ref('cursos').push(document.getElementById("novo-curso").value).then(() => {
+                alert("Curso cadastrado!");
+                document.getElementById("form-curso").reset();
+            });
+        }
+
+        function cadastrarInstituicao(e) {
+            e.preventDefault();
+            db.ref('instituicoes').push(document.getElementById("nova-inst").value).then(() => {
+                alert("Instituição cadastrada!");
+                document.getElementById("form-inst").reset();
+            });
+        }
+
+        function alocarCurso(e) {
+            e.preventDefault();
             var salaId = document.getElementById("select-sala-alocacao").value;
-            
-            var ocupacaoData = {
-                curso: document.getElementById("oc-curso").value,
-                instituicao: document.getElementById("oc-instituicao").value,
+            var dadosOcupacao = {
+                curso: document.getElementById("select-curso-alocacao").value,
+                instituicao: document.getElementById("select-inst-alocacao").value,
                 turno: document.getElementById("oc-turno").value,
-                alunos: document.getElementById("oc-alunos").value,
+                alunos: Number(document.getElementById("oc-alunos").value),
                 inicio: document.getElementById("oc-inicio").value,
                 fim: document.getElementById("oc-fim").value,
                 telefone: document.getElementById("oc-telefone").value
             };
 
-            db.ref('ocupacoes/' + salaId).set(ocupacaoData).then(function() {
-                alert("Sala ocupada/alocada com sucesso!");
+            db.ref('ocupacoes/' + salaId).set(dadosOcupacao).then(() => {
+                alert("Sala alocada com sucesso!");
                 document.getElementById("form-ocupacao").reset();
-            }).catch(function(error) {
-                alert("Erro ao alocar curso: " + error.message);
             });
         }
 
-        // 3. Liberar sala (remove a ocupação e deixa verde novamente)
         window.liberarSala = function(salaId) {
-            if (confirm("Tem certeza que deseja liberar esta sala?")) {
-                db.ref('ocupacoes/' + salaId).remove().then(function() {
-                    alert("Sala liberada com sucesso!");
-                }).catch(function(error) {
-                    alert("Erro ao liberar sala: " + error.message);
+            if (confirm("Deseja liberar esta sala?")) {
+                db.ref('ocupacoes/' + salaId).remove().then(() => {
+                    alert("Sala liberada!");
                 });
             }
         };
 
-        function renderizarPainel(salasObj, ocupacoesObj) {
-            var selectSala = document.getElementById("select-sala-alocacao");
+        function renderizarPainelCompleto(dados) {
+            var salasObj = dados.salas || {};
+            var cursosObj = dados.cursos || {};
+            var instObj = dados.instituicoes || {};
+            var ocupacoesObj = dados.ocupacoes || {};
+
+            // 1. Select Salas
+            var selSala = document.getElementById("select-sala-alocacao");
+            selSala.innerHTML = "<option value=''>Selecione uma sala...</option>";
+            Object.keys(salasObj).forEach(id => {
+                var s = salasObj[id];
+                var ocupada = ocupacoesObj[id] && ocupacoesObj[id].curso;
+                selSala.innerHTML += `<option value="${id}">Sala ${s.nome} (Bloco ${s.bloco}) ${ocupada ? '[OCUPADA]' : '[LIVRE]'}</option>`;
+            });
+
+            // 2. Select Cursos
+            var selCurso = document.getElementById("select-curso-alocacao");
+            selCurso.innerHTML = "<option value=''>Selecione um curso...</option>";
+            Object.values(cursosObj).forEach(c => {
+                selCurso.innerHTML += `<option value="${c}">${c}</option>`;
+            });
+
+            // 3. Select Instituições
+            var selInst = document.getElementById("select-inst-alocacao");
+            selInst.innerHTML = "<option value=''>Selecione uma instituição...</option>";
+            Object.values(instObj).forEach(i => {
+                selInst.innerHTML += `<option value="${i}">${i}</option>`;
+            });
+
+            // 4. Tabela de Gerenciamento
             var tbody = document.getElementById("tabela-gerenciamento");
-            var ids = Object.keys(salasObj);
-
-            selectSala.innerHTML = "<option value=''>Selecione uma sala...</option>";
             tbody.innerHTML = "";
+            var idsSalas = Object.keys(salasObj);
 
-            if (ids.length === 0) {
+            if (idsSalas.length === 0) {
                 tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Nenhuma sala cadastrada.</td></tr>";
+            } else {
+                idsSalas.forEach(id => {
+                    var sala = salasObj[id];
+                    var oc = ocupacoesObj[id] || {};
+                    var isOcupada = oc && oc.curso;
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>Sala ${sala.nome}</strong> (Bloco ${sala.bloco})</td>
+                            <td>${isOcupada ? '<span style="color:#dc3545; font-weight:bold;">🔴 Ocupada</span>' : '<span style="color:#28a745; font-weight:bold;">🟢 Disponível</span>'}</td>
+                            <td>${isOcupada ? `<strong>${oc.curso}</strong> (${oc.instituicao})<br>Turno: ${oc.turno} \vert{} Alunos:${oc.alunos}<br>Período: ${formatarData(oc.inicio)} até ${formatarData(oc.fim)}` : '<em style="color:#666;">Livre</em>'}</td>
+                            <td>${isOcupada ? `<button class="btn-liberar" onclick="liberarSala('${id}')">🔓 Liberar</button>` : '<span style="color:#666; font-size:12px;">Livre</span>'}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // Atualiza o relatório mensal
+            gerarRelatorioMensal();
+        }
+
+        function gerarRelatorioMensal() {
+            var mesAnoFiltro = document.getElementById("filtro-mes-ano").value; // Formato "YYYY-MM"
+            var ocupacoesObj = dadosGlobais.ocupacoes || {};
+            var tbodyRel = document.getElementById("tabela-relatorio");
+            var resumoCard = document.getElementById("relatorio-resumo");
+
+            tbodyRel.innerHTML = "";
+            if (!mesAnoFiltro) {
+                resumoCard.innerHTML = "Selecione um mês válido.";
                 return;
             }
 
-            ids.forEach(function(id) {
-                var sala = salasObj[id];
-                var ocupacao = ocupacoesObj[id] || {};
-                var isOcupada = ocupacao && ocupacao.curso;
+            var totalAlunosMes = 0;
+            var totalCursosMes = 0;
+            var htmlLinhas = "";
 
-                // Preenche o select do formulário de alocação
-                var opt = document.createElement("option");
-                opt.value = id;
-                opt.text = "Sala " + sala.nome + " (Bloco " + sala.bloco + ") " + (isOcupada ? "[OCUPADA]" : "[LIVRE]");
-                selectSala.appendChild(opt);
+            Object.keys(ocupacoesObj).forEach(id => {
+                var oc = ocupacoesObj[id];
+                if (oc && oc.inicio) {
+                    // Verifica se o mês de início do curso confere com o filtro selecionado
+                    var mesAnoInicio = oc.inicio.substring(0, 7); 
+                    if (mesAnoInicio === mesAnoFiltro) {
+                        totalCursosMes++;
+                        totalAlunosMes += Number(oc.alunos || 0);
 
-                // Preenche a tabela administrativa
-                var tr = document.createElement("tr");
-                
-                var tdSala = document.createElement("td");
-                tdSala.innerHTML = "<strong>Sala " + sala.nome + "</strong> (Bloco " + sala.bloco + ")";
-                
-                var tdStatus = document.createElement("td");
-                tdStatus.innerHTML = isOcupada ? "<span style='color:#dc3545; font-weight:bold;'>🔴 Ocupada</span>" : "<span style='color:#28a745; font-weight:bold;'>🟢 Disponível</span>";
-                
-                var tdCurso = document.createElement("td");
-                tdCurso.innerHTML = isOcupada ? (ocupacao.curso + " (" + (ocupacao.instituicao || "N/A") + ") - Turno: " + (ocupacao.turno || "N/A")) : "<em style='color:#666;'>Sala livre</em>";
-                
-                var tdAcoes = document.createElement("td");
-                if (isOcupada) {
-                    var btnLiberar = document.createElement("button");
-                    btnLiberar.className = "btn-liberar";
-                    btnLiberar.innerHTML = "🔓 Liberar Sala";
-                    btnLiberar.onclick = function() { liberarSala(id); };
-                    tdAcoes.appendChild(btnLiberar);
-                } else {
-                    tdAcoes.innerHTML = "<span style='color:#666; font-size:12px;'>Livre</span>";
+                        htmlLinhas += `
+                            <tr>
+                                <td><strong>${oc.curso}</strong></td>
+                                <td>${oc.instituicao || 'N/A'}</td>
+                                <td>${formatarData(oc.inicio)} a ${formatarData(oc.fim)}</td>
+                                <td>${oc.turno || 'N/A'}</td>
+                                <td><strong>${oc.alunos || 0}</strong></td>
+                            </tr>
+                        `;
+                    }
                 }
-
-                tr.appendChild(tdSala);
-                tr.appendChild(tdStatus);
-                tr.appendChild(tdCurso);
-                tr.appendChild(tdAcoes);
-                tbody.appendChild(tr);
             });
+
+            if (totalCursosMes === 0) {
+                tbodyRel.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Nenhum curso registrado neste mês.</td></tr>";
+                resumoCard.innerHTML = `📅 Período: ${mesAnoFiltro} | Total de Cursos: 0 | Total de Alunos Atendidos: 0`;
+            } else {
+                tbodyRel.innerHTML = htmlLinhas;
+                resumoCard.innerHTML = `📅 Relatório de ${mesAnoFiltro} | 📚 Total de Cursos Realizados: ${totalCursosMes} | 👥 Total Geral de Alunos Atendidos: ${totalAlunosMes}`;
+            }
+        }
+
+        function formatarData(dataIso) {
+            if (!dataIso) return "";
+            var p = dataIso.split("-");
+            if (p.length < 3) return dataIso;
+            return `${p[2]}/${p[1]}/${p[0]}`;
         }
     </script>
 </body>
