@@ -6,7 +6,7 @@
     <title>Mapa de Salas de Aula - Tempo Real</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- Firebase SDKs (Compatibilidade Direta no Navegador) -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
@@ -44,7 +44,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT DE LEITURA DO MAPA EM TEMPO REAL -->
+    <!-- SCRIPT DE LEITURA DO MAPA -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
@@ -131,7 +131,7 @@
                             <div class="tooltip-info">
                                 <strong>${sala.nome} (${sala.bloco})</strong><br>
                                 Status: ${isOcupada ? 'Ocupada' : 'Disponível'}<br>
-                                ${isOcupada ? `Curso: ${ocupacao.curso}<br>Turno:${ocupacao.turno || 'Não informado'}<br>Alunos: ${ocupacao.alunos \vert{}\vert{} 'N/A'}<br>Início: ${formatarData(ocupacao.inicio)}<br>Término: ${formatarData(ocupacao.fim)}<br>Contato:${ocupacao.telefone}` : 'Livre para uso'}
+                                ${isOcupada ? `Instituição: ${ocupacao.instituicao || 'N/A'}<br>Curso: ${ocupacao.curso}<br>Turno:${ocupacao.turno || 'Não informado'}<br>Alunos: ${ocupacao.alunos \vert{}\vert{} 'N/A'}<br>Início: ${formatarData(ocupacao.inicio)}<br>Término: ${formatarData(ocupacao.fim)}<br>Contato:${ocupacao.telefone}` : 'Livre para uso'}
                             </div>
                         `;
                         imgContainer.appendChild(marcador);
@@ -159,6 +159,7 @@
                             <h4>${sala.nome} (${sala.bloco})</h4>
                             <p><strong>Status:</strong> ${isOcupada ? '<span style="color:var(--danger-color)">Ocupada</span>' : '<span style="color:var(--accent-color)">Disponível</span>'}</p>
                             ${isOcupada ? `
+                                <p><strong>Instituição:</strong> ${ocupacao.instituicao || 'Não informada'}</p>
                                 <p><strong>Curso:</strong> ${ocupacao.curso}</p>
                                 <p><strong>Turno:</strong> ${ocupacao.turno || 'Não informado'}</p>
                                 <p><strong>Nº de Alunos:</strong> ${ocupacao.alunos || 'N/A'}</p>
