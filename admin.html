@@ -6,7 +6,7 @@
     <title>Painel Administrativo - Nuvem</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- CSS de Impressão Otimizado e Alinhado -->
+    <!-- CSS de Impressão Definitivo com Alinhamento Travado -->
     <style>
         #area-impressao-oficial {
             display: none;
@@ -26,30 +26,25 @@
                 top: 0;
                 width: 100%;
                 background: white;
-                padding: 10px;
+                padding: 15px;
             }
             #area-impressao-oficial img {
-                max-height: 70px !important;
+                max-height: 65px !important;
                 display: block !important;
                 margin: 0 auto 10px auto !important;
             }
+            /* Tabela com larguras rígidas para evitar qualquer desalinhamento */
             #area-impressao-oficial table {
                 width: 100% !important;
                 border-collapse: collapse !important;
-                display: table !important;
-            }
-            #area-impressao-oficial tr {
-                display: table-row !important;
+                table-layout: fixed !important;
             }
             #area-impressao-oficial th, #area-impressao-oficial td {
-                display: table-cell !important;
                 border: 1px solid #333 !important;
-                padding: 8px !important;
-                text-align: left !important;
-                font-size: 13px !important;
-            }
-            #area-impressao-oficial th.text-center, #area-impressao-oficial td.text-center {
-                text-align: center !important;
+                padding: 8px 6px !important;
+                font-size: 12px !important;
+                word-wrap: break-word !important;
+                overflow: hidden !important;
             }
             @page {
                 size: portrait;
@@ -64,12 +59,12 @@
 </head>
 <body onload="iniciarPainel()">
 
-    <!-- ÁREA EXCLUSIVA PARA IMPRESSÃO OFICIAL (COM LOGO E IESP) -->
+    <!-- ÁREA EXCLUSIVA PARA IMPRESSÃO OFICIAL -->
     <div id="area-impressao-oficial">
         <div style="text-align: center; margin-bottom: 20px;">
-            <img src="sua-logo.png" alt="Logo IESP" style="max-height: 70px; margin-bottom: 8px; display: inline-block;" onerror="this.style.display='none'">
-            <h2 style="margin: 0; font-size: 16px; color: #000;">INSTITUTO DE SEGURANÇA PÚBLICA - IESP</h2>
-            <p id="titulo-relatorio-impresso" style="font-size: 13px; font-weight: bold; margin-top: 8px;"></p>
+            <img src="sua-logo.png" alt="Logo IESP" style="max-height: 65px; margin-bottom: 8px;" onerror="this.style.display='none'">
+            <h2 style="margin: 0; font-size: 15px; color: #000; font-weight: bold;">INSTITUTO DE SEGURANÇA PÚBLICA - IESP</h2>
+            <p id="titulo-relatorio-impresso" style="font-size: 13px; font-weight: bold; margin-top: 6px;"></p>
         </div>
         <div id="tabela-impressao-container"></div>
     </div>
@@ -446,16 +441,17 @@
             } else {
                 let totalAlunosMes = 0;
 
+                // Tabela comum na tela com larguras fixas percentuais aplicadas nas colunas
                 let htmlTabela = `
                     <h4 style="margin-top: 0; color: #333; margin-bottom: 12px; font-size: 15px;">Relatório de Ocupação - ${formatarMesAnoVisual(mesAnoSelecionado)} (${listaOcupacoesMes.length} registro(s) em ordem cronológica)</h4>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed;">
                         <thead>
                             <tr style="background: #f1f3f5; border-bottom: 2px solid #ccc; text-align: left;">
-                                <th style="padding: 10px; border: 1px solid #ddd; width: 15%;">Sala</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; width: 25%;">Curso Realizado</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; width: 20%;">Instituição</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; width: 15%; text-align: center;">Início</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; width: 15%; text-align: center;">Término</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; width: 16%;">Sala</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; width: 24%;">Curso Realizado</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; width: 22%;">Instituição</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; width: 14%; text-align: center;">Início</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; width: 14%; text-align: center;">Término</th>
                                 <th style="padding: 10px; border: 1px solid #ddd; width: 10%; text-align: center;">Alunos</th>
                             </tr>
                         </thead>
@@ -466,11 +462,11 @@
                     totalAlunosMes += item.alunos;
                     htmlTabela += `
                         <tr style="border-bottom: 1px solid #eee;">
-                            <td style="padding: 9px; border: 1px solid #ddd;"><strong>${item.salaNome}</strong></td>
-                            <td style="padding: 9px; border: 1px solid #ddd;">${item.curso}</td>
-                            <td style="padding: 9px; border: 1px solid #ddd;">${item.instituicao}</td>
-                            <td style="padding: 9px; border: 1px solid #ddd; text-align: center;">${formatarData(item.inicio)}</td>
-                            <td style="padding: 9px; border: 1px solid #ddd; text-align: center;">${formatarData(item.fim)}</td>
+                            <td style="padding: 9px; border: 1px solid #ddd; word-break: break-word;"><strong>${item.salaNome}</strong></td>
+                            <td style="padding: 9px; border: 1px solid #ddd; word-break: break-word;">${item.curso}</td>
+                            <td style="padding: 9px; border: 1px solid #ddd; word-break: break-word;">${item.instituicao}</td>
+                            <td style="padding: 9px; border: 1px solid #ddd; text-align: center; white-space: nowrap;">${formatarData(item.inicio)}</td>
+                            <td style="padding: 9px; border: 1px solid #ddd; text-align: center; white-space: nowrap;">${formatarData(item.fim)}</td>
                             <td style="padding: 9px; border: 1px solid #ddd; text-align: center;">${item.alunos}</td>
                         </tr>
                     `;
