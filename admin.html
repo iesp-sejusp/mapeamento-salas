@@ -28,6 +28,11 @@
                 background: white;
                 padding: 10px;
             }
+            #area-impressao-oficial img {
+                max-height: 70px !important;
+                display: block !important;
+                margin: 0 auto 10px auto !important;
+            }
             #area-impressao-oficial table {
                 width: 100% !important;
                 border-collapse: collapse !important;
@@ -59,9 +64,10 @@
 </head>
 <body onload="iniciarPainel()">
 
-    <!-- ÁREA EXCLUSIVA PARA IMPRESSÃO OFICIAL (APENAS IESP) -->
+    <!-- ÁREA EXCLUSIVA PARA IMPRESSÃO OFICIAL (COM LOGO E IESP) -->
     <div id="area-impressao-oficial">
         <div style="text-align: center; margin-bottom: 20px;">
+            <img src="sua-logo.png" alt="Logo IESP" style="max-height: 70px; margin-bottom: 8px; display: inline-block;" onerror="this.style.display='none'">
             <h2 style="margin: 0; font-size: 16px; color: #000;">INSTITUTO DE SEGURANÇA PÚBLICA - IESP</h2>
             <p id="titulo-relatorio-impresso" style="font-size: 13px; font-weight: bold; margin-top: 8px;"></p>
         </div>
@@ -131,7 +137,7 @@
             <!-- SECAO DE RELATÓRIO MENSAL CRONOLÓGICO -->
             <div style="margin-bottom: 30px; background: #eef2f7; padding: 20px; border-radius: 8px; border: 1px solid #d1d9e0;">
                 <h3>📊 Relatório de Ocupação por Mês (Ordem Cronológica)</h3>
-                <p>Selecione o mês desejado para consultar a programação em ordem de início:</p>
+                <p>Relatório Mensal do Uso de Salas:</p>
                 
                 <div style="display: flex; gap: 15px; align-items: flex-end; margin-bottom: 15px;">
                     <div style="flex: 1;">
