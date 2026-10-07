@@ -6,46 +6,38 @@
     <title>Painel Administrativo - Nuvem</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- CSS de Impressão Otimizado (Mantém a tabela horizontal perfeita e limpa) -->
+    <!-- CSS de Impressão Otimizado para seguir exatamente o layout limpo -->
     <style>
-        #area-impressao-oficial {
-            display: none;
-        }
-
         @media print {
             body * {
-                display: none !important;
+                visibility: hidden !important;
             }
-            #area-impressao-oficial, #area-impressao-oficial * {
-                display: block !important;
+            #secao-relatorio-mensal, #secao-relatorio-mensal * {
                 visibility: visible !important;
             }
-            #area-impressao-oficial {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                background: white;
-                padding: 10px;
+            #secao-relatorio-mensal {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                background: white !important;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
             }
-            /* Garante que a tabela mantenha as colunas lado a lado perfeitamente */
-            #area-impressao-oficial table {
+            /* Esconde os controles (inputs e botão de imprimir) na folha final */
+            .btn-imprimir, #filtro-mes-ano, label, p:has(#filtro-mes-ano), h3:has(+ p) {
+                display: none !important;
+            }
+            /* Garante que a tabela mantenha o layout horizontal perfeito */
+            table {
                 width: 100% !important;
                 border-collapse: collapse !important;
-                display: table !important;
             }
-            #area-impressao-oficial tr {
-                display: table-row !important;
-            }
-            #area-impressao-oficial th, #area-impressao-oficial td {
-                display: table-cell !important;
-                border: 1px solid #333 !important;
-                padding: 8px !important;
-                text-align: left !important;
+            th, td {
+                border: 1px solid #ddd !important;
+                padding: 10px !important;
                 font-size: 13px !important;
-            }
-            #area-impressao-oficial th.text-center, #area-impressao-oficial td.text-center {
-                text-align: center !important;
             }
             @page {
                 size: portrait;
@@ -59,16 +51,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body onload="iniciarPainel()">
-
-    <!-- ÁREA EXCLUSIVA PARA IMPRESSÃO OFICIAL -->
-    <div id="area-impressao-oficial">
-        <div style="text-align: center; margin-bottom: 20px;">
-            <h2 style="margin: 0; font-size: 16px; color: #000;">CORPO DE BOMBEIROS MILITAR DO AMAPÁ - CBMAP</h2>
-            <h3 style="margin: 3px 0 0 0; font-size: 13px; color: #333;">INSTITUTO DE SEGURANÇA PÚBLICA - IESP</h3>
-            <p id="titulo-relatorio-impresso" style="font-size: 13px; font-weight: bold; margin-top: 8px;"></p>
-        </div>
-        <div id="tabela-impressao-container"></div>
-    </div>
 
     <div class="wrapper">
         <header>
@@ -131,8 +113,8 @@
             <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
 
             <!-- SECAO DE RELATÓRIO MENSAL CRONOLÓGICO -->
-            <div style="margin-bottom: 30px; background: #eef2f7; padding: 20px; border-radius: 8px; border: 1px solid #d1d9e0;">
-                <h3>📊 Relatório de Ocupação por Mês (Ordem Cronológica)</h3>
+            <div id="secao-relatorio-mensal" style="margin-bottom: 30px; background: #eef2f7; padding: 20px; border-radius: 8px; border: 1px solid #d1d9e0;">
+                <h3 style="margin-top: 0; color: #333;">📊 Relatório de Ocupação por Mês (Ordem Cronológica)</h3>
                 <p>Selecione o mês desejado para consultar a programação em ordem de início:</p>
                 
                 <div style="display: flex; gap: 15px; align-items: flex-end; margin-bottom: 15px;">
@@ -141,7 +123,7 @@
                         <input type="month" id="filtro-mes-ano" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" onchange="gerarRelatorioMensal()">
                     </div>
                     <div>
-                        <button type="button" class="btn-action" style="margin-top: 0; background: #28a745;" onclick="window.print()">🖨️ Imprimir Relatório</button>
+                        <button type="button" class="btn-action btn-imprimir" style="margin-top: 0; background: #28a745;" onclick="window.print()">🖨️ Imprimir Relatório</button>
                     </div>
                 </div>
 
@@ -394,13 +376,9 @@
         function gerarRelatorioMensal() {
             const mesAnoSelecionado = document.getElementById("filtro-mes-ano").value;
             const resultadoDiv = document.getElementById("resultado-relatorio-mensal");
-            const tabelaImpressaoContainer = document.getElementById("tabela-impressao-container");
-            const tituloImpresso = document.getElementById("titulo-relatorio-impresso");
 
             if (!mesAnoSelecionado) {
                 resultadoDiv.innerHTML = `<p style="color: #666; margin: 0;">Selecione um mês acima para exibir o relatório correspondente.</p>`;
-                tabelaImpressaoContainer.innerHTML = "";
-                tituloImpresso.innerText = "";
                 return;
             }
 
@@ -431,18 +409,16 @@
                 }
             });
 
-            // Ordena rigorosamente por ordem cronológica (data de início)
+            // Ordena estritamente em ordem cronológica (pela data de início)
             listaOcupacoesMes.sort((a, b) => a.inicio.localeCompare(b.inicio));
 
             if (listaOcupacoesMes.length === 0) {
                 resultadoDiv.innerHTML = `<p style="color: #d9534f; margin: 0;">Nenhum curso ou ocupação registrada para o mês selecionado (${formatarMesAnoVisual(mesAnoSelecionado)}).</p>`;
-                tabelaImpressaoContainer.innerHTML = "";
-                tituloImpresso.innerText = "";
             } else {
                 let totalAlunosMes = 0;
 
                 let htmlTabela = `
-                    <h4 style="margin-top: 0; color: #333; margin-bottom: 12px;">Relatório de Ocupação - ${formatarMesAnoVisual(mesAnoSelecionado)} (${listaOcupacoesMes.length} registro(s))</h4>
+                    <h4 style="margin-top: 0; color: #333; margin-bottom: 12px; font-size: 15px;">Relatório de Ocupação - ${formatarMesAnoVisual(mesAnoSelecionado)} (${listaOcupacoesMes.length} registro(s) em ordem cronológica)</h4>
                     <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
                         <thead>
                             <tr style="background: #f1f3f5; border-bottom: 2px solid #ccc; text-align: left;">
@@ -483,10 +459,7 @@
                     </table>
                 `;
                 
-                // Exibe no painel web e atualiza a área oficial de impressão
                 resultadoDiv.innerHTML = htmlTabela;
-                tituloImpresso.innerText = `RELATÓRIO DE OCUPAÇÃO DE SALAS - ${formatarMesAnoVisual(mesAnoSelecionado).toUpperCase()}`;
-                tabelaImpressaoContainer.innerHTML = htmlTabela;
             }
         }
 
