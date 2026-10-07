@@ -6,7 +6,7 @@
     <title>Painel Administrativo - Nuvem</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- CSS de Impressão Nativo (Garante página única e limpa) -->
+    <!-- CSS de Impressão Otimizado (Mantém a tabela horizontal perfeita e limpa) -->
     <style>
         #area-impressao-oficial {
             display: none;
@@ -26,16 +26,23 @@
                 top: 0;
                 width: 100%;
                 background: white;
-                padding: 20px;
+                padding: 10px;
             }
+            /* Garante que a tabela mantenha as colunas lado a lado perfeitamente */
             #area-impressao-oficial table {
                 width: 100% !important;
                 border-collapse: collapse !important;
+                display: table !important;
+            }
+            #area-impressao-oficial tr {
+                display: table-row !important;
             }
             #area-impressao-oficial th, #area-impressao-oficial td {
-                border: 1px solid #000 !important;
+                display: table-cell !important;
+                border: 1px solid #333 !important;
                 padding: 8px !important;
                 text-align: left !important;
+                font-size: 13px !important;
             }
             #area-impressao-oficial th.text-center, #area-impressao-oficial td.text-center {
                 text-align: center !important;
@@ -56,9 +63,9 @@
     <!-- ÁREA EXCLUSIVA PARA IMPRESSÃO OFICIAL -->
     <div id="area-impressao-oficial">
         <div style="text-align: center; margin-bottom: 20px;">
-            <h2 style="margin: 0; font-size: 18px; color: #000;">CORPO DE BOMBEIROS MILITAR DO AMAPÁ - CBMAP</h2>
-            <h3 style="margin: 5px 0 0 0; font-size: 14px; color: #333;">INSTITUTO DE SEGURANÇA PÚBLICA - IESP</h3>
-            <p id="titulo-relatorio-impresso" style="font-size: 14px; font-weight: bold; margin-top: 10px;"></p>
+            <h2 style="margin: 0; font-size: 16px; color: #000;">CORPO DE BOMBEIROS MILITAR DO AMAPÁ - CBMAP</h2>
+            <h3 style="margin: 3px 0 0 0; font-size: 13px; color: #333;">INSTITUTO DE SEGURANÇA PÚBLICA - IESP</h3>
+            <p id="titulo-relatorio-impresso" style="font-size: 13px; font-weight: bold; margin-top: 8px;"></p>
         </div>
         <div id="tabela-impressao-container"></div>
     </div>
@@ -424,7 +431,7 @@
                 }
             });
 
-            // Ordena estritamente em ordem cronológica (pela data de início)
+            // Ordena rigorosamente por ordem cronológica (data de início)
             listaOcupacoesMes.sort((a, b) => a.inicio.localeCompare(b.inicio));
 
             if (listaOcupacoesMes.length === 0) {
@@ -435,16 +442,16 @@
                 let totalAlunosMes = 0;
 
                 let htmlTabela = `
-                    <h4 style="margin-top: 0; color: #333;">Relatório de Ocupação - ${formatarMesAnoVisual(mesAnoSelecionado)} (${listaOcupacoesMes.length} registro(s) em ordem cronológica)</h4>
-                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
+                    <h4 style="margin-top: 0; color: #333; margin-bottom: 12px;">Relatório de Ocupação - ${formatarMesAnoVisual(mesAnoSelecionado)} (${listaOcupacoesMes.length} registro(s))</h4>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
                         <thead>
                             <tr style="background: #f1f3f5; border-bottom: 2px solid #ccc; text-align: left;">
-                                <th style="padding: 8px; border: 1px solid #ddd;">Sala</th>
-                                <th style="padding: 8px; border: 1px solid #ddd;">Curso Realizado</th>
-                                <th style="padding: 8px; border: 1px solid #ddd;">Instituição</th>
-                                <th style="padding: 8px; border: 1px solid #ddd;">Início</th>
-                                <th style="padding: 8px; border: 1px solid #ddd;">Término</th>
-                                <th style="padding: 8px; border: 1px solid #ddd; text-align: center;">Alunos</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">Sala</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">Curso Realizado</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">Instituição</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">Início</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">Término</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Alunos</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -454,17 +461,17 @@
                     totalAlunosMes += item.alunos;
                     htmlTabela += `
                         <tr style="border-bottom: 1px solid #eee;">
-                            <td style="padding: 8px; border: 1px solid #ddd;"><strong>${item.salaNome}</strong></td>
-                            <td style="padding: 8px; border: 1px solid #ddd;">${item.curso}</td>
-                            <td style="padding: 8px; border: 1px solid #ddd;">${item.instituicao}</td>
-                            <td style="padding: 8px; border: 1px solid #ddd;">${formatarData(item.inicio)}</td>
-                            <td style="padding: 8px; border: 1px solid #ddd;">${formatarData(item.fim)}</td>
-                            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${item.alunos}</td>
+                            <td style="padding: 9px; border: 1px solid #ddd;"><strong>${item.salaNome}</strong></td>
+                            <td style="padding: 9px; border: 1px solid #ddd;">${item.curso}</td>
+                            <td style="padding: 9px; border: 1px solid #ddd;">${item.instituicao}</td>
+                            <td style="padding: 9px; border: 1px solid #ddd;">${formatarData(item.inicio)}</td>
+                            <td style="padding: 9px; border: 1px solid #ddd;">${formatarData(item.fim)}</td>
+                            <td style="padding: 9px; border: 1px solid #ddd; text-align: center;">${item.alunos}</td>
                         </tr>
                     `;
                 });
 
-                // Linha de Soma Total de Alunos no final da tabela
+                // Linha de Rodapé com a Soma Total de Alunos
                 htmlTabela += `
                         </tbody>
                         <tfoot>
@@ -476,6 +483,7 @@
                     </table>
                 `;
                 
+                // Exibe no painel web e atualiza a área oficial de impressão
                 resultadoDiv.innerHTML = htmlTabela;
                 tituloImpresso.innerText = `RELATÓRIO DE OCUPAÇÃO DE SALAS - ${formatarMesAnoVisual(mesAnoSelecionado).toUpperCase()}`;
                 tabelaImpressaoContainer.innerHTML = htmlTabela;
