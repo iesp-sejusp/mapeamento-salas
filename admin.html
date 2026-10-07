@@ -61,12 +61,34 @@
 
             <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
 
-            <!-- SECAO DE OCUPAÇÕES ATIVAS (COM DATAS DETALHADAS) -->
+            <!-- SECAO DE OCUPAÇÕES ATIVAS -->
             <div style="margin-bottom: 30px;">
                 <h3>Salas Ocupadas e Cursos em Andamento</h3>
-                <p>Visão geral de todas as salas ocupadas com os respectivos cursos e prazos vigentes:</p>
+                <p>Visão geral de todas as salas ocupadas no momento:</p>
                 <div id="relatorio-ocupacoes-container" style="margin-top: 15px;">
                     <p style="color: #666;">Carregando ocupações...</p>
+                </div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #ddd; margin: 25px 0;">
+
+            <!-- SECAO DE RELATÓRIO MENSAL (NOVO) -->
+            <div style="margin-bottom: 30px; background: #eef2f7; padding: 20px; border-radius: 8px; border: 1px solid #d1d9e0;">
+                <h3>📊 Relatório de Ocupação por Mês</h3>
+                <p>Selecione o mês desejado para consultar todas as programações e cursos previstos no período:</p>
+                
+                <div style="display: flex; gap: 15px; align-items: flex-end; margin-bottom: 15px;">
+                    <div style="flex: 1;">
+                        <label>Selecione o Mês e Ano:</label>
+                        <input type="month" id="filtro-mes-ano" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" onchange="gerarRelatorioMensal()">
+                    </div>
+                    <div>
+                        <button type="button" class="btn-action" style="margin-top: 0; background: #28a745;" onclick="window.print()">🖨️ Imprimir Relatório</button>
+                    </div>
+                </div>
+
+                <div id="resultado-relatorio-mensal" style="background: #fff; padding: 15px; border-radius: 6px; border: 1px solid #ddd;">
+                    <p style="color: #666; margin: 0;">Selecione um mês acima para exibir o relatório correspondente.</p>
                 </div>
             </div>
 
@@ -191,6 +213,8 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        let dadosGlobaisCache = {};
+
         function iniciarPainel() {
             db.ref('/').on('value', (snapshot) => {
                 const dados = snapshot.val();
@@ -204,12 +228,19 @@
                     return;
                 }
 
+                dadosGlobaisCache = dados; // Guarda cache para o relatório mensal
                 const salas = dados.salas || {};
                 const ocupacoes = dados.ocupacoes || {};
                 const cursos = dados.cursos || {};
                 const instituicoes = dados.instituicoes || {};
                 
                 atualizarInterfaceAdmin(salas, ocupacoes, cursos, instituicoes);
+                
+                // Se já houver um mês selecionado, atualiza o relatório automaticamente
+                const mesInput = document.getElementById("filtro-mes-ano").value;
+                if (mesInput) {
+                    gerarRelatorioMensal();
+                }
             });
         }
 
@@ -303,6 +334,62 @@
             });
         }
 
+        function gerarRelatorioMensal() {
+            const mesAnoSelecionado = document.getElementById("filtro-mes-ano").value; // Formato: "AAAA-MM"
+            const resultadoDiv = document.getElementById("resultado-relatorio-mensal");
+
+            if (!mesAnoSelecionado) {
+                resultadoDiv.innerHTML = `<p style="color: #666; margin: 0;">Selecione um mês acima para exibir o relatório correspondente.</p>`;
+                return;
+            }
+
+            const salas = dadosGlobaisCache.salas || {};
+            const ocupacoes = dadosGlobaisCache.ocupacoes || {};
+            const idsSalas = Object.keys(ocupacoes);
+
+            let htmlOcupacoesMes = "";
+            let totalEncontradas = 0;
+
+            idsSalas.forEach(salaId => {
+                const oc = ocupacoes[salaId];
+                const sala = salas[salaId] || { nome: "Sala Removida", bloco: "N/A" };
+
+                if (oc && oc.inicio && oc.fim) {
+                    // Verifica se a data de início ou término pertence ao mês selecionado ou se o mês está no meio do período
+                    const mesInicio = oc.inicio.substring(0, 7); // "AAAA-MM"
+                    const mesFim = oc.fim.substring(0, 7);       // "AAAA-MM"
+
+                    if (mesInicio <= mesAnoSelecionado && mesFim >= mesAnoSelecionado) {
+                        totalEncontradas++;
+                        htmlOcupacoesMes += `
+                            <div style="border-bottom: 1px solid #eee; padding: 10px 0;">
+                                <strong style="color: var(--primary-color);">🏫 ${sala.nome} (${sala.bloco})</strong><br>
+                                <strong>Curso:</strong> ${oc.curso} | <strong>Instituição:</strong> ${oc.instituicao || 'Não informada'}<br>
+                                <strong>Turno:</strong> ${oc.turno} | <strong>Alunos:</strong> ${oc.alunos} | <strong>Contato:</strong> ${oc.telefone}<br>
+                                <span style="color: #555; font-size: 13px;">📅 Período: ${formatarData(oc.inicio)} até ${formatarData(oc.fim)}</span>
+                            </div>
+                        `;
+                    }
+                }
+            });
+
+            if (totalEncontradas === 0) {
+                resultadoDiv.innerHTML = `<p style="color: #d9534f; margin: 0;">Nenhum curso ou ocupação registrada para o mês selecionado (${formatarMesAnoVisual(mesAnoSelecionado)}).</p>`;
+            } else {
+                resultadoDiv.innerHTML = `
+                    <h4 style="margin-top: 0; color: #333;">Relatório de Ocupação - ${formatarMesAnoVisual(mesAnoSelecionado)} (${totalEncontradas} sala(s) ocupada(s))</h4>
+                    ${htmlOcupacoesMes}
+                `;
+            }
+        }
+
+        function formatarMesAnoVisual(anoMesStr) {
+            const partes = anoMesStr.split("-");
+            if (partes.length < 2) return anoMesStr;
+            const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+            return `${meses[parseInt(partes[1]) - 1]} de ${partes[0]}`;
+        }
+
         function formatarData(dataIso) {
             if (!dataIso) return "Não informada";
             const partes = dataIso.split("-");
@@ -349,69 +436,4 @@
         }
 
         function liberarSalaNuvem(id) {
-            if (!confirm("Deseja liberar esta sala (remover a ocupação atual)?")) return;
-            db.ref('ocupacoes/' + id).remove();
-            alert("Sala liberada com sucesso!");
-        }
-
-        function cadastrarCursoNuvem() {
-            const val = document.getElementById("novo-curso-input").value.trim();
-            if (!val) { alert("Digite o nome do curso."); return; }
-            db.ref('cursos').push(val, (err) => {
-                if (!err) document.getElementById("novo-curso-input").value = "";
-            });
-        }
-
-        function removerCursoNuvem(key) {
-            db.ref('cursos/' + key).remove();
-        }
-
-        function cadastrarInstituicaoNuvem() {
-            const val = document.getElementById("nova-instituicao-input").value.trim();
-            if (!val) { alert("Digite o nome da instituição."); return; }
-            db.ref('instituicoes').push(val, (err) => {
-                if (!err) document.getElementById("nova-instituicao-input").value = "";
-            });
-        }
-
-        function removerInstituicaoNuvem(key) {
-            db.ref('instituicoes/' + key).remove();
-        }
-
-        function salvarOcupacaoNuvem() {
-            const salaId = document.getElementById("select-sala").value;
-            const instituicao = document.getElementById("input-instituicao-nome").value.trim();
-            const curso = document.getElementById("input-curso-nome").value.trim();
-            const turno = document.getElementById("select-turno").value;
-            const alunos = document.getElementById("input-alunos").value.trim();
-            const inicio = document.getElementById("data-inicio").value;
-            const fim = document.getElementById("data-fim").value;
-            const telefone = document.getElementById("telefone-contato").value.trim();
-
-            if (!salaId) {
-                alert("Por favor, selecione uma sala.");
-                return;
-            }
-            if (!curso || !turno || !alunos || !inicio || !fim || !telefone) {
-                alert("Preencha todos os campos obrigatórios da ocupação.");
-                return;
-            }
-
-            db.ref('ocupacoes/' + salaId).set({
-                instituicao, curso, turno, alunos, inicio, fim, telefone
-            }, (error) => {
-                if (!error) {
-                    alert("Ocupação salva na nuvem com sucesso!");
-                    document.getElementById("input-instituicao-nome").value = "";
-                    document.getElementById("input-curso-nome").value = "";
-                    document.getElementById("select-turno").value = "";
-                    document.getElementById("input-alunos").value = "";
-                    document.getElementById("data-inicio").value = "";
-                    document.getElementById("data-fim").value = "";
-                    document.getElementById("telefone-contato").value = "";
-                }
-            });
-        }
-    </script>
-</body>
-</html>
+            if (!confirm("Deseja liberar esta sala
