@@ -194,22 +194,6 @@
         }
     </style>
 
-    <!-- Script de Garantia da Função de Login executado antes de tudo -->
-    <script>
-        function validarSenha() {
-            var digitada = document.getElementById("senha-admin").value;
-            if (digitada === "sargento2026") {
-                document.getElementById("login-overlay").style.display = "none";
-                document.getElementById("painel-conteudo").style.display = "block";
-                if (typeof carregarPainelAdmin === "function") {
-                    carregarPainelAdmin();
-                }
-            } else {
-                document.getElementById("erro-senha").style.display = "block";
-            }
-        }
-    </script>
-
     <!-- Firebase SDKs Compat -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -396,6 +380,20 @@
     </div>
 
     <script>
+        const SENHA_ADMIN = "sargento2026";
+
+        function validarSenha() {
+            var digitada = document.getElementById("senha-admin").value;
+            if (digitada === SENHA_ADMIN) {
+                document.getElementById("login-overlay").style.display = "none";
+                document.getElementById("painel-conteudo").style.display = "block";
+                carregarPainelAdmin(); // <-- Garante a chamada imediata ao carregar os dados
+            } else {
+                document.getElementById("erro-senha").style.display = "block";
+            }
+        }
+        window.validarSenha = validarSenha;
+
         const firebaseConfig = {
             apiKey: "AIzaSyB35Lel5RYdB6vXU-y4CSbrIJ49vejhJs0",
             authDomain: "salas-iesp.firebaseapp.com",
@@ -577,114 +575,4 @@
 
             var selInst = document.getElementById("select-inst-alocacao");
             var divInstGerenciar = document.getElementById("lista-inst-gerenciar");
-            selInst.innerHTML = "<option value=''>Selecione uma instituição...</option>";
-            divInstGerenciar.innerHTML = "";
-            Object.keys(instObj).forEach(id => {
-                var i = instObj[id];
-                selInst.innerHTML += `<option value="${i}">${i}</option>`;
-                divInstGerenciar.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; background:#fff; padding:5px 8px; margin-bottom:5px; border-radius:4px; border:1px solid #ddd; font-size:13px;">
-                    <span>${i}</span>
-                    <div>
-                        <button class="btn-editar" onclick="editarInstituicao('${id}', '${i}')" style="padding:2px 6px; font-size:11px;">✏️ Editar</button>
-                        <button class="btn-liberar" onclick="excluirInstituicao('${id}')" style="padding:2px 6px; font-size:11px;">🗑️</button>
-                    </div>
-                </div>`;
-            });
-
-            var tbody = document.getElementById("tabela-gerenciamento");
-            tbody.innerHTML = "";
-            var idsSalas = Object.keys(salasObj);
-
-            if (idsSalas.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Nenhuma sala cadastrada.</td></tr>";
-            } else {
-                idsSalas.forEach(id => {
-                    var sala = salasObj[id];
-                    var oc = ocupacoesObj[id] || {};
-                    var isOcupada = oc && oc.curso;
-
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>
-                                <div style="display:flex; gap: 5px; margin-bottom:5px;">
-                                    <input type="text" id="edit-nome-${id}" value="${sala.nome}" style="width: 70px; padding:4px;" placeholder="Nome">
-                                    <input type="text" id="edit-bloco-${id}" value="${sala.bloco}" style="width: 70px; padding:4px;" placeholder="Bloco">
-                                </div>
-                            </td>
-                            <td>
-                                <div style="display:flex; gap: 5px; align-items:center;">
-                                    <label style="margin:0; font-size:11px;">X:</label>
-                                    <input type="number" id="edit-x-${id}" value="${sala.x !== undefined ? sala.x : 50}" style="width: 60px; padding:4px;">
-                                    <label style="margin:0; font-size:11px;">Y:</label>
-                                    <input type="number" id="edit-y-${id}" value="${sala.y !== undefined ? sala.y : 50}" style="width: 60px; padding:4px;">
-                                    <button class="btn-editar" onclick="salvarEdicaoSala('${id}')">💾 Salvar</button>
-                                </div>
-                            </td>
-                            <td>${isOcupada ? `<span style='color:#dc3545; font-weight:bold;'>🔴 Ocupada</span><br><small>${oc.curso} (${oc.instituicao})</small>` : "<span style='color:#28a745; font-weight:bold;'>🟢 Disponível</span>"}</td>
-                            <td>
-                                ${isOcupada ? `<button class="btn-liberar" onclick="liberarSala('${id}')">🔓 Liberar</button>` : "<span style='color:#666; font-size:12px;'>Livre</span>"}
-                            </td>
-                        </tr>
-                    `;
-                });
-            }
-
-            gerarRelatorioMensal();
-        }
-
-        function gerarRelatorioMensal() {
-            var mesAnoFiltro = document.getElementById("filtro-mes-ano").value;
-            var historicoObj = dadosGlobais.historico_cursos || {};
-            var tbodyRel = document.getElementById("tabela-relatorio");
-            var resumoCard = document.getElementById("relatorio-resumo");
-
-            tbodyRel.innerHTML = "";
-            if (!mesAnoFiltro) {
-                resumoCard.innerHTML = "Selecione um mês válido.";
-                return;
-            }
-
-            var totalAlunosMes = 0;
-            var totalCursosMes = 0;
-            var htmlLinhas = "";
-
-            Object.keys(historicoObj).forEach(id => {
-                var item = historicoObj[id];
-                if (item && item.inicio) {
-                    var mesAnoInicio = item.inicio.substring(0, 7); 
-                    if (mesAnoInicio === mesAnoFiltro) {
-                        totalCursosMes++;
-                        totalAlunosMes += Number(item.alunos || 0);
-
-                        htmlLinhas += `
-                            <tr>
-                                <td><strong>${item.salaNome || 'Sala'}</strong></td>
-                                <td><strong>${item.curso}</strong></td>
-                                <td>${item.instituicao || 'N/A'}</td>
-                                <td>${formatarData(item.inicio)} a ${formatarData(item.fim)}</td>
-                                <td>${item.turno || 'N/A'}</td>
-                                <td><strong>${item.alunos || 0}</strong></td>
-                            </tr>
-                        `;
-                    }
-                }
-            });
-
-            if (totalCursosMes === 0) {
-                tbodyRel.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Nenhum curso registrado neste mês.</td></tr>";
-                resumoCard.innerHTML = `📅 Período: ${mesAnoFiltro} | Total de Ocupações: 0 | Total de Alunos Atendidos: 0`;
-            } else {
-                tbodyRel.innerHTML = htmlLinhas;
-                resumoCard.innerHTML = `📅 Relatório de ${mesAnoFiltro} | 📚 Total de Ocupações Realizadas: ${totalCursosMes} | 👥 Total Geral de Alunos Atendidos: ${totalAlunosMes}`;
-            }
-        }
-
-        function formatarData(dataIso) {
-            if (!dataIso) return "";
-            var p = dataIso.split("-");
-            if (p.length < 3) return dataIso;
-            return `${p[2]}/${p[1]}/${p[0]}`;
-        }
-    </script>
-</body>
-</html>
+            selInst.innerHTML = "<option value='
