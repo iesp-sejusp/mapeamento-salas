@@ -6,7 +6,7 @@
     <title>Painel Administrativo - Nuvem</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- CSS de Impressão Definitivo com Alinhamento Travado -->
+    <!-- CSS de Impressão Definitivo com Alinhamento Perfeito -->
     <style>
         #area-impressao-oficial {
             display: none;
@@ -26,20 +26,23 @@
                 top: 0;
                 width: 100%;
                 background: white;
-                padding: 15px;
+                padding: 10px;
             }
             #area-impressao-oficial img {
-                max-height: 65px !important;
+                max-height: 70px !important;
                 display: block !important;
                 margin: 0 auto 10px auto !important;
             }
-            /* Tabela com larguras rígidas para evitar qualquer desalinhamento */
             #area-impressao-oficial table {
                 width: 100% !important;
                 border-collapse: collapse !important;
                 table-layout: fixed !important;
             }
+            #area-impressao-oficial tr {
+                display: table-row !important;
+            }
             #area-impressao-oficial th, #area-impressao-oficial td {
+                display: table-cell !important;
                 border: 1px solid #333 !important;
                 padding: 8px 6px !important;
                 font-size: 12px !important;
@@ -61,10 +64,9 @@
 
     <!-- ÁREA EXCLUSIVA PARA IMPRESSÃO OFICIAL -->
     <div id="area-impressao-oficial">
-        <div style="text-align: center; margin-bottom: 20px;">
-            <img src="sua-logo.png" alt="Logo IESP" style="max-height: 65px; margin-bottom: 8px;" onerror="this.style.display='none'">
-            <h2 style="margin: 0; font-size: 15px; color: #000; font-weight: bold;">INSTITUTO DE SEGURANÇA PÚBLICA - IESP</h2>
-            <p id="titulo-relatorio-impresso" style="font-size: 13px; font-weight: bold; margin-top: 6px;"></p>
+        <div style="text-align: center; margin-bottom: 15px;">
+            <img src="sua-logo.png" alt="Logo IESP" style="max-height: 70px; margin-bottom: 8px;" onerror="this.style.display='none'">
+            <p id="titulo-relatorio-impresso" style="font-size: 14px; font-weight: bold; margin-top: 5px; color: #000;"></p>
         </div>
         <div id="tabela-impressao-container"></div>
     </div>
@@ -441,7 +443,7 @@
             } else {
                 let totalAlunosMes = 0;
 
-                // Tabela comum na tela com larguras fixas percentuais aplicadas nas colunas
+                // Tabela estruturada com table-layout fixo e larguras rigorosas para impedir qualquer desalinhamento
                 let htmlTabela = `
                     <h4 style="margin-top: 0; color: #333; margin-bottom: 12px; font-size: 15px;">Relatório de Ocupação - ${formatarMesAnoVisual(mesAnoSelecionado)} (${listaOcupacoesMes.length} registro(s) em ordem cronológica)</h4>
                     <table style="width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed;">
