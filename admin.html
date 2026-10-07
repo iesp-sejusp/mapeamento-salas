@@ -200,7 +200,7 @@
 </head>
 <body>
 
-    <!-- TELA DE LOGIN ADMINISTRATIVO (Sem chamadas inline propensas a cache) -->
+    <!-- TELA DE LOGIN ADMINISTRATIVO -->
     <div id="login-overlay" class="no-print">
         <div class="login-box">
             <img src="sua-logo.png" alt="Logo IESP" class="login-logo" onerror="this.style.display='none'">
@@ -516,23 +516,32 @@
             }
         };
 
+        // Alocação com verificação exata e conversão numérica de datas (anti-conflito)
         function alocarCurso(e) {
             e.preventDefault();
             var salaId = document.getElementById("select-sala-alocacao").value;
-            var novoInicio = document.getElementById("oc-inicio").value;
-            var novoFim = document.getElementById("oc-fim").value;
+            var novoInicioStr = document.getElementById("oc-inicio").value;
+            var novoFimStr = document.getElementById("oc-fim").value;
+
+            var novoInicioTime = new Date(novoInicioStr + "T00:00:00").getTime();
+            var novoFimTime = new Date(novoFimStr + "T00:00:00").getTime();
+
+            if (novoInicioTime > novoFimTime) {
+                alert("⚠️ A data de início não pode ser posterior à data de término!");
+                return;
+            }
 
             var ocupacoesAtuais = dadosGlobais.ocupacoes || {};
             var ocupacaoAtualSala = ocupacoesAtuais[salaId];
 
             if (ocupacaoAtualSala && ocupacaoAtualSala.inicio && ocupacaoAtualSala.fim) {
-                var inicioExistente = ocupacaoAtualSala.inicio;
-                var fimExistente = ocupacaoAtualSala.fim;
+                var existenteInicioTime = new Date(ocupacaoAtualSala.inicio + "T00:00:00").getTime();
+                var existenteFimTime = new Date(ocupacaoAtualSala.fim + "T00:00:00").getTime();
 
-                var haConflito = (novoInicio <= fimExistente) && (novoFim >= inicioExistente);
+                var haConflito = (novoInicioTime <= existenteFimTime) && (novoFimTime >= existenteInicioTime);
 
                 if (haConflito) {
-                    alert("⚠️ ATENÇÃO: Esta sala já está ocupada neste período pelo curso de '" + ocupacaoAtualSala.curso + "' (" + formatarData(inicioExistente) + " até " + formatarData(fimExistente) + "). Libere a sala ou escolha outro período/sala.");
+                    alert("⚠️ ALERTA DE CONFLITO: Esta sala já está ocupada neste período!\n\nCurso em andamento: " + ocupacaoAtualSala.curso + "\nPeríodo: " + formatarData(ocupacaoAtualSala.inicio) + " até " + formatarData(ocupacaoAtualSala.fim) + "\n\nLibere a sala ou escolha outro período/sala.");
                     return;
                 }
             }
@@ -547,8 +556,8 @@
                 instituicao: document.getElementById("select-inst-alocacao").value,
                 turno: document.getElementById("oc-turno").value,
                 alunos: Number(document.getElementById("oc-alunos").value),
-                inicio: novoInicio,
-                fim: novoFim,
+                inicio: novoInicioStr,
+                fim: novoFimStr,
                 telefone: document.getElementById("oc-telefone").value
             };
 
